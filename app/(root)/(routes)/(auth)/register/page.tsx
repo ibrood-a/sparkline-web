@@ -33,7 +33,7 @@ export default function Page() {
   const register = async (values: z.infer<typeof RegisterSchema>) => {
     try {
       const response = await axios.post('/api/auth/register', values)
-      return response.data
+      return response
     } catch (error) {
       return { error: 'Registration failed!' }
     }
@@ -41,15 +41,11 @@ export default function Page() {
 
   const onSubmit = async (values: z.infer<typeof RegisterSchema>) => {
     startTransition(async () => {
+
       const data = await register(values)
 
-      if (data?.error) {
-        toast.error(data.error)
-      }
-      if (data?.success) {
-        toast.success(data.success)
-        form.reset({ email: '', password: '', name: '' })
-      }
+      console.log(data)
+
     })
   }
 

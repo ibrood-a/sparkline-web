@@ -10,14 +10,14 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 export const sendVerificationEmail = async (email: string, token: string) => {
   const confirmLink = `http://localhost:3000/new-verification?token=${token}`
 
-  await resend.emails.send({
+  const result = await resend.emails.send({
     from: 'Nizar <noreply@resend.dev>',
     to: email,
     subject: 'Confirm your email',
     html: render(LinkEmail({ token }))
   })
 
-  resend.contacts.create({
+  const created = resend.contacts.create({
     email: email,
     audienceId: 'ed288a7a-23ef-4f32-a2f1-3dc887da7a1c'
   })

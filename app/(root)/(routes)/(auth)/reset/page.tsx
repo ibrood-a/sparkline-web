@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 
 import { useState, useTransition } from 'react'
-import { reset } from '@/actions/reset'
+import { reset } from '@/app/api/auth/reset/reset'
 import { toast } from 'react-hot-toast'
 
 export default function ResetForm() {
