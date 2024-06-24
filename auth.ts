@@ -14,7 +14,7 @@ export const {
 } = NextAuth({
   // if there is an error, redirect to this page
   pages: {
-    signIn: '/login',
+    signIn: '/route',
     error: '/error'
   },
   // events to get emailverfiied if the user used Oauth

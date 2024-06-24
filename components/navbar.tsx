@@ -15,10 +15,6 @@ export const navPages = [
     link: '/#pricing'
   },
   {
-    title: 'Pricing',
-    link: '/#pricing'
-  },
-  {
     title: 'Tos',
     link: '/tos'
   },

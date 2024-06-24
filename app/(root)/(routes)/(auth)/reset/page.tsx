@@ -46,8 +46,8 @@ export default function ResetForm() {
   return (
     <CardWrapper
       headerTitle="Password Reset"
-      backButtonLabel="Back to login"
-      backButtonHref="/login"
+      backButtonLabel="Back to route"
+      backButtonHref="/route"
     >
       <Form {...form}>
         <form

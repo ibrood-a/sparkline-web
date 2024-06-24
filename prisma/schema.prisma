@@ -36,25 +36,26 @@ model User {
   purchases     Purchase[]
 
   // Other fields can be added as needed
+  ScheduledPosts ScheduledPosts[]
 }
 
 model Account {
-  id                 Int      @id @default(autoincrement())
-  userId             Int
-  type               String
-  provider           String
-  account_id         String
-  refresh_token      String?  @db.Text
-  access_token       String?  @db.Text
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?  @db.Text
-  session_state      String?
+  id            Int     @id @default(autoincrement())
+  userId        Int
+  type          String
+  provider      String
+  providerAccountId String
+  refresh_token String? @db.Text
+  access_token  String? @db.Text
+  expires_at    Int?
+  token_type    String?
+  scope         String?
+  id_token      String? @db.Text
+  session_state String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([provider, account_id])
+  @@unique([provider, providerAccountId]) // Composite unique constraint
 }
 
 model VerificationToken {
@@ -67,39 +68,51 @@ model VerificationToken {
 }
 
 model PasswordResetToken {
-  id       Int      @id @default(autoincrement())
-  email    String
-  token    String   @unique
-  expires  DateTime
+  id      Int      @id @default(autoincrement())
+  email   String
+  token   String   @unique
+  expires DateTime
 
   @@unique([email, token])
 }
 
 model UserSubscription {
-  id                        Int      @id @default(autoincrement())
-  userId                    Int      @unique
-  stripeCustomerId          String?  @unique @map(name: "stripe_customer_id")
-  stripeSubscriptionId      String?  @unique @map(name: "stripe_subscription_id")
-  stripePriceId             String?  @unique @map(name: "stripe_price_id")
-  stripeCurrentPeriodEnd    DateTime? @unique @map(name: "stripe_current_period_end")
-  user                      User     @relation(fields: [userId], references: [id])
+  id                     Int       @id @default(autoincrement())
+  userId                 Int       @unique
+  stripeCustomerId       String?   @unique @map(name: "stripe_customer_id")
+  stripeSubscriptionId   String?   @unique @map(name: "stripe_subscription_id")
+  stripePriceId          String?   @unique @map(name: "stripe_price_id")
+  stripeCurrentPeriodEnd DateTime? @unique @map(name: "stripe_current_period_end")
+  user                   User      @relation(fields: [userId], references: [id])
 }
 
 model Purchase {
-  id         Int      @id @default(autoincrement())
-  userId     Int
-  amount     Float
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt()
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  amount    Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt()
 
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model StripeCustomer {
-  id               Int      @id @default(autoincrement())
-  userId           Int      @unique
-  stripeCustomerId String   @unique
+  id               Int    @id @default(autoincrement())
+  userId           Int    @unique
+  stripeCustomerId String @unique
 
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt()
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt()
+}
+
+model ScheduledPosts {
+  id                  Int     @id @default(autoincrement())
+  userId              Int
+  s3Path              String  @db.VarChar(255)
+  postTime            String  @db.VarChar(255)
+  mediaType           String  @db.VarChar(20)
+  schedulePostRequest String  @db.Text
+  posted              Boolean
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

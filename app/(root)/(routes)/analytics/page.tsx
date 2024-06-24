@@ -78,8 +78,8 @@ const AnalyticsPage: React.FC = () => {
     }
 
     const groupedVideos = groupVideosByDate(videoData);
-    const lineGraphData = generateLineGraphData(groupedVideos);
-    const barChartData = generateBarChartData(groupedVideos);
+    //const lineGraphData = generateLineGraphData(groupedVideos);
+    //const barChartData = generateBarChartData(groupedVideos);
 
     const currentVideos: [string, VideoDataProps[]][] = Object.entries(groupedVideos);
 
@@ -131,8 +131,7 @@ const AnalyticsPage: React.FC = () => {
                   </DashboardCardContent>
               </section>
               <section className="grid grid-cols-1 gap-6 transition-all lg:grid-cols-2 text-primary">
-                  <LineGraph data={lineGraphData} />
-                  <BarChart data={barChartData} />
+
               </section>
           </div>
       </div>

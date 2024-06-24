@@ -75,14 +75,14 @@ export function groupVideosByDate(videoData: VideoDataProps[]): Record<string, V
 
 export function generateLineGraphData(groupedVideos: Record<string, VideoDataProps[]>): LineGraphData[] {
   return Object.entries(groupedVideos).map(([date, videos]) => ({
-    month: format(new Date(date), 'MMM yyyy'),
+    month: format(new Date(date), "MMMM do, yyyy H:mma"),
     users: videos.length,
   }));
 }
 
 export function generateBarChartData(groupedVideos: Record<string, VideoDataProps[]>): BarChartData[] {
   return Object.entries(groupedVideos).map(([date, videos]) => ({
-    month: format(new Date(date), 'MMM yyyy'),
+    month: format(new Date(date), "MMMM do, yyyy H:mma"),
     total: videos.reduce((sum, video) => sum + video.views, 0),
   }));
 }

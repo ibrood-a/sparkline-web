@@ -13,11 +13,8 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json() // Parse the JSON body
-
-    console.log(body)
     const validatedFields = RegisterSchema.safeParse(body)
 
-    console.log(validatedFields)
     if (!validatedFields.success) {
       return new NextResponse('Invalid fields', { status: 400 })
     }
@@ -26,8 +23,6 @@ export async function POST(req: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 10)
 
     const existingUser = await getUserByEmail(email)
-
-    console.log(existingUser)
     if (existingUser) {
       return new NextResponse('Email already exists', { status: 400 })
     }
@@ -40,15 +35,11 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    console.log(user)
     const verificationToken = await generateVerificationToken(email)
-
-    console.log(verificationToken)
     await sendVerificationEmail(verificationToken.email, verificationToken.token)
 
     return new NextResponse('Check your email for the verification email', { status: 200 })
   } catch (error) {
-    console.error(error)
     return new NextResponse('Internal server error', { status: 500 })
   }
 }
