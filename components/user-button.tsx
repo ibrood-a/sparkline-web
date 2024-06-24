@@ -21,13 +21,11 @@ import {
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { useEffect, useState } from 'react'
-
 export const UserButton = () => {
   const userButtonItems = [
     {
       label: 'Dashboard',
-      href: '/dashboard',
+      href: '/admin-dashboard',
       icon: LayoutDashboard
     },
     {

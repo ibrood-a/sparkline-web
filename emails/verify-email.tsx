@@ -23,7 +23,7 @@ export const LinkEmail = ({ token }: LinkEmailProps) => (
       <Container style={container}>
         <Heading style={h1}>Login</Heading>
         <Link
-          href={`${process.env.APP_URL}/verify-email?token=${token}`}
+          href={`${process.env.APP_URL}/new-verification?token=${token}`}
           target="_blank"
           style={{
             ...link,
@@ -51,20 +51,20 @@ export const LinkEmail = ({ token }: LinkEmailProps) => (
             marginBottom: '16px'
           }}
         >
-          your logo here
+          LOGO
         </Text>
 
         <Text style={footer}>
           <Link
-            href="https://nizzyabi.com"
+            href="https://sparkline.fyi"
             target="_blank"
             style={{ ...link, color: '#898989' }}
           >
-            yoururl.com
+            sparkline.fyi
           </Link>
-          , learn to code
+          , expand your reach
           <br />
-          && have fun doing it.
+          with analytics and scheduling.
         </Text>
       </Container>
     </Body>

@@ -12,7 +12,7 @@ export const MobileSidebar = () => {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger className="sm:hidden pr-4 text-primary" onClick={openSidebar}>
+      <SheetTrigger className="pr-4 text-primary" onClick={openSidebar}>
         <PanelRightClose className="h-6 w-6 hover:text-primary/50 duration-300" />
       </SheetTrigger>
       <SheetContent side="left" className="p-6 border-none w-80 bg-secondary">

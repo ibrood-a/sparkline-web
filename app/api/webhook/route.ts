@@ -44,7 +44,7 @@ export async function POST(req: Request) {
 
   // invoice.payment_succeeded is sent on subscription renewals
   if (event.type === "invoice.payment_succeeded") {
-    // note: sometimes the subscription we get back doesn't have the up to date current_period_end
+    // note: sometimes the subscription we get back doesn't have the up-to-date current_period_end
     // which is why we also need to listen for customer.subscription.updated
     const subscription = await stripe.subscriptions.retrieve(
       session.subscription as string

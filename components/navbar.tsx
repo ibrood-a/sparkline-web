@@ -8,16 +8,24 @@ import { Logo } from '@/components/logo'
 export const navPages = [
   {
     title: 'Dashboard',
-    link: '/dashboard'
+    link: '/analytics'
   },
   {
     title: 'Pricing',
     link: '/#pricing'
   },
   {
-    title: 'Items',
-    link: '/#items'
-  }
+    title: 'Pricing',
+    link: '/#pricing'
+  },
+  {
+    title: 'Tos',
+    link: '/tos'
+  },
+  {
+    title: 'Privacy',
+    link: '/privacy'
+  },
 ]
 
 export const Navbar = () => {
@@ -25,10 +33,9 @@ export const Navbar = () => {
     <nav className="top-0 w-full z-50 transition">
       <div className="max-w-6xl mx-auto px-6 py-4">
         <div className="flex justify-between items-center">
-          <MobileSidebar />
           {/* Logo */}
           <Link href="/">
-            <Logo />
+            <Logo/>
           </Link>
           {/* Links, Theme, & User */}
           <div className="hidden sm:flex h-[40px] items-center text-lg md:text-lg font-medium gap-4 transition-all">

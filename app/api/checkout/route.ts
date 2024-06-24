@@ -11,9 +11,11 @@ export async function POST(req: Request) {
       return new NextResponse('Unauthorized', { status: 401 })
     }
 
+    const userId = Number(user.user.id) // Convert the user ID to a number
+
     const userSubscription = await db.userSubscription.findUnique({
       where: {
-        userId: user.user.id
+        userId: userId // Use the converted userId
       }
     })
 

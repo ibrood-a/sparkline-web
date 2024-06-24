@@ -13,26 +13,37 @@ enum UserRole {
   ADMIN
 }
 
+enum Provider {
+  GOOGLE
+  FACEBOOK
+  TWITTER
+  INSTAGRAM
+  LINKEDIN
+  TIKTOK
+}
+
 model User {
-  id            String    @id @default(cuid())
+  id            Int                @id @default(autoincrement())
   name          String?
-  email         String?   @unique
+  email         String?            @unique
   emailVerified DateTime?
   image         String?
   password      String?
-  role          UserRole  @default(USER)
+  role          UserRole           @default(USER)
   accounts      Account[]
-  createdAt     DateTime  @default(now())
+  createdAt     DateTime           @default(now())
   subscriptions UserSubscription[]
   purchases     Purchase[]
+
+  // Other fields can be added as needed
 }
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
+  id                 Int      @id @default(autoincrement())
+  userId             Int
   type               String
   provider           String
-  providerAccountId  String
+  account_id         String
   refresh_token      String?  @db.Text
   access_token       String?  @db.Text
   expires_at         Int?
@@ -43,11 +54,11 @@ model Account {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([provider, providerAccountId])
+  @@unique([provider, account_id])
 }
 
 model VerificationToken {
-  id      String   @id @default(cuid())
+  id      Int      @id @default(autoincrement())
   email   String
   token   String   @unique
   expires DateTime
@@ -56,7 +67,7 @@ model VerificationToken {
 }
 
 model PasswordResetToken {
-  id       String   @id @default(cuid())
+  id       Int      @id @default(autoincrement())
   email    String
   token    String   @unique
   expires  DateTime
@@ -65,8 +76,8 @@ model PasswordResetToken {
 }
 
 model UserSubscription {
-  id                        String   @id @default(uuid())
-  userId                    String   @unique
+  id                        Int      @id @default(autoincrement())
+  userId                    Int      @unique
   stripeCustomerId          String?  @unique @map(name: "stripe_customer_id")
   stripeSubscriptionId      String?  @unique @map(name: "stripe_subscription_id")
   stripePriceId             String?  @unique @map(name: "stripe_price_id")
@@ -75,8 +86,8 @@ model UserSubscription {
 }
 
 model Purchase {
-  id         String   @id @default(uuid())
-  userId     String
+  id         Int      @id @default(autoincrement())
+  userId     Int
   amount     Float
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt()
@@ -85,8 +96,8 @@ model Purchase {
 }
 
 model StripeCustomer {
-  id               String   @id @default(uuid())
-  userId           String   @unique
+  id               Int      @id @default(autoincrement())
+  userId           Int      @unique
   stripeCustomerId String   @unique
 
   createdAt        DateTime @default(now())

@@ -8,7 +8,6 @@ import authConfig from '@/auth.config'
 // auth
 export const {
   handlers: { GET, POST },
-
   auth, // This auth thing helps us get user info such as for display certain content for them and specific data
   signIn,
   signOut
@@ -21,8 +20,11 @@ export const {
   // events to get emailverfiied if the user used Oauth
   events: {
     async linkAccount({ user }) {
+
+      const userId = Number(user.id) // Convert the user ID to a number
+
       await db.user.update({
-        where: { id: user.id },
+        where: { id: userId },
         data: { emailVerified: new Date() }
       })
     }
@@ -35,8 +37,7 @@ export const {
       if (account?.provider !== 'credentials') return true
 
       // get exisiting user & restrict signin if they have not verified their email
-      const exisitingUser = await getUserById(user.id ?? '')
-
+      const exisitingUser = await getUserById(Number(user.id))
       if (!exisitingUser?.emailVerified) return false
 
       return true
@@ -61,7 +62,7 @@ export const {
       // fetch user
       if (!token.sub) return token
 
-      const exisitingUser = await getUserById(token.sub)
+      const exisitingUser = await getUserById(Number(token.sub))
 
       if (!exisitingUser) return token
 

@@ -23,27 +23,27 @@ const sidebarPages = [
 
 const socials = [
   {
-    link: 'https://github.com/NizarAbiZaher',
+    link: '#',
     title: 'Github'
   },
   {
-    link: 'https://www.youtube.com/@NizzyABI',
+    link: '#',
     title: 'Youtube'
   },
   {
-    link: 'https://twitter.com/NizarAbiZaher',
+    link: '#',
     title: 'Twitter'
   },
   {
-    link: 'https://www.linkedin.com/in/nizarabizaher/',
+    link: '#',
     title: 'Tiktok'
   },
   {
-    link: 'https://www.instagram.com/nizarabizaher/',
+    link: '#',
     title: 'Instagram'
   },
   {
-    link: 'https://discord.gg/nizar',
+    link: '#',
     title: 'Discord'
   }
 ]

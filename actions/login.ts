@@ -10,22 +10,23 @@ import { sendVerificationEmail } from '@/lib/mail'
 export const login = async (values: z.infer<typeof LoginSchema>) => {
   // Validate fields
   const validatedFields = LoginSchema.safeParse(values)
-
+  console.log(validatedFields)
   // If fields are not valid
   if (!validatedFields.success) {
     return { error: 'Invalid fields' }
   }
   // If fields are valid
   const { email, password } = validatedFields.data
-  const exisitingUser = await getUserByEmail(email)
+  const existingUser = await getUserByEmail(email)
 
-  if (!exisitingUser || !exisitingUser.email || !exisitingUser.password) {
-    return { error: 'Email does not exisit' }
+  console.log(existingUser)
+  if (!existingUser || !existingUser.email || !existingUser.password) {
+    return { error: 'Email does not exist' }
   }
 
-  if (!exisitingUser.emailVerified) {
+  if (!existingUser.emailVerified) {
     const verificationToken = await generateVerificationToken(
-      exisitingUser.email
+      existingUser.email
     )
 
     await sendVerificationEmail(
@@ -33,7 +34,7 @@ export const login = async (values: z.infer<typeof LoginSchema>) => {
       verificationToken.token
     )
 
-    return { success: 'Confirmation email sent!' }
+    return { success: 'Email not verified, resending confirmation email' }
   }
 
   try {
@@ -43,6 +44,7 @@ export const login = async (values: z.infer<typeof LoginSchema>) => {
       password
     })
 
+    console.log(result)
     if (result?.error) {
       return { error: result.error }
     }
