@@ -33,7 +33,7 @@ export async function POST(req: Request) {
 
     await db.userSubscription.create({
       data: {
-        userId: session.metadata.userId,
+        userId: Number(session.metadata.userId),
         stripeSubscriptionId: subscription.id,
         stripeCustomerId: subscription.customer as string,
         stripePriceId: subscription.items.data[0].price.id,

@@ -1,77 +1,63 @@
-import NextAuth from 'next-auth'
-import { PrismaAdapter } from '@auth/prisma-adapter'
-import { UserRole } from '@prisma/client'
-import { getUserById } from '@/data/user'
-import { db } from '@/lib/db'
-import authConfig from '@/auth.config'
+import NextAuth from 'next-auth';
+import { getUserById } from '@/data/user';
+import { db } from '@/lib/db';
+import authConfig from '@/auth.config';
+import { Account, UserRole } from '@prisma/client';
+import { PrismaAdapter } from '@auth/prisma-adapter';
 
-// auth
 export const {
   handlers: { GET, POST },
-  auth, // This auth thing helps us get user info such as for display certain content for them and specific data
+  auth,
   signIn,
-  signOut
+  signOut,
 } = NextAuth({
-  // if there is an error, redirect to this page
   pages: {
-    signIn: '/route',
-    error: '/error'
+    signIn: '/login',
+    error: '/error',
   },
-  // events to get emailverfiied if the user used Oauth
   events: {
     async linkAccount({ user }) {
-
-      const userId = Number(user.id) // Convert the user ID to a number
-
+      const userId = Number(user.id);
       await db.user.update({
         where: { id: userId },
-        data: { emailVerified: new Date() }
-      })
-    }
+        data: { emailVerified: new Date() },
+      });
+    },
   },
-  // Callbacks allow us to customuzie the auth process such as who has access to what, get ID, and block users.
   callbacks: {
-    // sign in
     async signIn({ user, account }) {
-      // Allow OAuth without verification
-      if (account?.provider !== 'credentials') return true
+      if (account?.provider !== 'credentials') return true;
 
-      // get exisiting user & restrict signin if they have not verified their email
-      const exisitingUser = await getUserById(Number(user.id))
-      if (!exisitingUser?.emailVerified) return false
+      const existingUser = await getUserById(Number(user.id));
+      if (!existingUser?.emailVerified) return false;
 
-      return true
+      return true;
     },
-    // token & session
     async session({ session, token }) {
-      // if they have an id (sub) and user has been created, return it
       if (token.sub && session.user) {
-        session.user.id = token.sub
+        session.user.id = token.sub;
+        session.user.role = token.role as UserRole;
+        session.user.accounts = token.accounts as Account[];
       }
 
-      // if they have a role and user has been created, return it
-      if (token.role && session.user) {
-        session.user.role = token.role as UserRole
-      }
-
-      return session
+      return session;
     },
+    async jwt({ token, user }) {
+      if (user) {
+        const userWithAccounts = await db.user.findUnique({
+          where: { id: Number(user.id) },
+          include: { accounts: true },
+        });
 
-    // jwt
-    async jwt({ token }) {
-      // fetch user
-      if (!token.sub) return token
+        token.sub = user.id;
+        token.role = userWithAccounts?.role;
+        token.accounts = userWithAccounts?.accounts || ["GOOGLE"];
+      }
 
-      const exisitingUser = await getUserById(Number(token.sub))
-
-      if (!exisitingUser) return token
-
-      token.role = exisitingUser.role
-      return token
-    }
-    // session userId
+      return token;
+    },
   },
   adapter: PrismaAdapter(db),
   session: { strategy: 'jwt' },
-  ...authConfig
-})
+  ...authConfig,
+});

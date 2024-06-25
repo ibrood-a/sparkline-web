@@ -2,8 +2,8 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
-import { PlaylistItemsResponse } from '@/app/(root)/(routes)/analytics/_components/video-response-type'
-import { ChannelData } from '@/app/(root)/(routes)/analytics/videoCache'
+import { PlaylistItemsResponse } from '@/app/(root)/(routes)/post/_components/video-response-type'
+import { ChannelData } from '@/app/(root)/(routes)/post/handleRequests'
 
 interface FetchAnalyticsResult {
   error: string | null;

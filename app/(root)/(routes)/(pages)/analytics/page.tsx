@@ -1,14 +1,14 @@
 import React from 'react';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
-import ClientComponent from './videoCache';
+import ClientComponent from './render-analytics';
 import { fetchAnalytics } from '@/hooks/use-fetch-analytics';
 
 export default async function AnalyticsPage() {
   const role = await auth();
 
   if (!role) {
-    return redirect('/');
+    return redirect('/login');
   }
 
   // Fetch data from localStorage (simulated here since localStorage is not available on the server)

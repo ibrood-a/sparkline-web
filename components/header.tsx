@@ -15,7 +15,7 @@ export const Header = () => {
             Social media analytics and scheduling tool
           </p>
           <div className="flex justify-center lg:justify-start items-center mt-4">
-            <Link href="/overview">
+            <Link href="/register">
               <Button className="gap-2">
                 <Sparkles className="h-5 w-5" />
                 <span>Get Started</span>

@@ -1,30 +1,12 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { VideoDataCard } from './_components/video-data-card';
-import { DashboardCard, DashboardCardContent } from './_components/dashboard-card';
+import { VideoDataCard } from '@/app/(root)/(routes)/(pages)/analytics/_components/video-data-card';
+import { DashboardCard, DashboardCardContent } from '@/app/(root)/(routes)/(pages)/analytics/_components/dashboard-card';
 import { VideoIcon, DollarSign, UserPlus, CreditCard } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { fetchAnalytics, groupVideosByDate } from '@/hooks/use-fetch-analytics';
-import { PlaylistItemsResponse } from './_components/video-response-type';
-
-export class ChannelData {
-  statistics: {
-    viewCount: string;
-    subscriberCount: string;
-  } | undefined;
-}
-
-interface ClientComponentProps {
-  initialVideoData: PlaylistItemsResponse[];
-  initialChannelData: ChannelData | null;
-}
-
-class FetchAnalyticsResult {
-  error: string | null | undefined;
-  videoData: PlaylistItemsResponse[] | undefined;
-  channelData: ChannelData | null | undefined;
-}
+import { PlaylistItemsResponse } from '@/app/(root)/(routes)/(pages)/analytics/_components/video-response-type';
 
 const ClientComponent: React.FC<ClientComponentProps> = ({ initialVideoData, initialChannelData }) => {
   const [videoData, setVideoData] = useState<PlaylistItemsResponse[]>(initialVideoData);
@@ -112,5 +94,23 @@ const ClientComponent: React.FC<ClientComponentProps> = ({ initialVideoData, ini
     </div>
   );
 };
+
+export class ChannelData {
+  statistics: {
+    viewCount: string;
+    subscriberCount: string;
+  } | undefined;
+}
+
+interface ClientComponentProps {
+  initialVideoData: PlaylistItemsResponse[];
+  initialChannelData: ChannelData | null;
+}
+
+class FetchAnalyticsResult {
+  error: string | null | undefined;
+  videoData: PlaylistItemsResponse[] | undefined;
+  channelData: ChannelData | null | undefined;
+}
 
 export default ClientComponent;

@@ -15,8 +15,6 @@ export async function GET(req: Request) {
     const payload = {user: user?.user.id, iss: process.env.JWT_ISSUER};
     const token = jwt.encode(payload, process.env.JWT_SECRET!!, "HS256");
 
-    console.log(`${process.env.API_URL}/socials/analyze/youtube/post`)
-    
     const [videoResponse, channelResponse] = await Promise.all([
       axios.get(`${process.env.API_URL}/socials/analyze/youtube/post`, {
         headers: { Authorization: `Bearer ${token}` },
