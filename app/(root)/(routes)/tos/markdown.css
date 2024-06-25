@@ -1,0 +1,37 @@
+/* markdown-styles.css */
+.markdown h1 {
+    font-size: 2em;
+    margin-top: 1em;
+}
+
+.markdown h2 {
+    font-size: 1.75em;
+    margin-top: 1em;
+}
+
+.markdown h3 {
+    font-size: 1.5em;
+    margin-top: 1em;
+}
+
+.markdown p {
+    margin: 0.5em 0;
+}
+
+.markdown ul {
+    list-style-type: disc;
+    margin-left: 1.5em;
+}
+
+.markdown strong {
+    font-weight: bold;
+}
+
+.markdown a {
+    color: #0070f3;
+    text-decoration: none;
+}
+
+.markdown a:hover {
+    text-decoration: underline;
+}

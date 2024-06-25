@@ -49,9 +49,14 @@ export const UserButton = () => {
   const router = useRouter()
   const session = useCurrentUser()
 
-  const onClick = () => {
+  const Register = () => {
     router.push('/register')
   }
+
+  const Login = () => {
+    router.push('/login')
+  }
+
   const Logout = () => {
     signOut()
     router.push('/login')
@@ -60,7 +65,7 @@ export const UserButton = () => {
   return (
     <>
       {!session ? (
-        <div>
+        <div className="flex items-center">
           <Link
             href="/register"
             className="flex md:hidden items-center justify-center rounded-lg cursor-pointer transition duration-300 hover:bg-primary/10 px-2 py-2"
@@ -70,10 +75,18 @@ export const UserButton = () => {
 
           <Button
             type="submit"
-            onClick={onClick}
+            onClick={Register}
             className="px-5 rounded-md hidden md:flex"
           >
             Get Started
+          </Button>
+
+          <Button
+            type="button"
+            onClick={Login}
+            className="px-5 rounded-md hidden md:flex ml-2"
+          >
+            Login
           </Button>
         </div>
       ) : (
