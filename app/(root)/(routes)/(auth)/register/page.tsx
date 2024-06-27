@@ -17,6 +17,8 @@ import { Button } from '@/components/ui/button'
 import { useTransition } from 'react'
 import toast from 'react-hot-toast'
 import axios from 'axios'
+import exports from 'webpack'
+import { register } from '@/actions/register'
 
 export default function Page() {
   const [isPending, startTransition] = useTransition()
@@ -29,15 +31,6 @@ export default function Page() {
       name: ''
     }
   })
-
-  const register = async (values: z.infer<typeof RegisterSchema>) => {
-    try {
-      const response = await axios.post('/api/auth/register', values)
-      return response
-    } catch (error) {
-      return { error: 'Registration failed!' }
-    }
-  }
 
   const onSubmit = async (values: z.infer<typeof RegisterSchema>) => {
     startTransition(async () => {
