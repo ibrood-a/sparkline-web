@@ -15,10 +15,8 @@ import { Input } from '@/components/ui/input'
 import { CardWrapper } from '@/components/auth/card-wrapper'
 import { Button } from '@/components/ui/button'
 import { useTransition } from 'react'
-import toast from 'react-hot-toast'
-import axios from 'axios'
-import exports from 'webpack'
 import { register } from '@/actions/register'
+import toast from 'react-hot-toast'
 
 export default function Page() {
   const [isPending, startTransition] = useTransition()
@@ -32,13 +30,17 @@ export default function Page() {
     }
   })
 
-  const onSubmit = async (values: z.infer<typeof RegisterSchema>) => {
-    startTransition(async () => {
-
-      const data = await register(values)
-
-      console.log(data)
-
+  const onSubmit = (values: z.infer<typeof RegisterSchema>) => {
+    startTransition(() => {
+      register(values).then((data) => {
+        if (data?.error) {
+          toast.error(data.error)
+        }
+        if (data?.success) {
+          toast.success(data.success)
+          form.reset({ email: '', password: '', name: '' })
+        }
+      })
     })
   }
 
@@ -47,6 +49,7 @@ export default function Page() {
       headerTitle="Register"
       backButtonLabel="Already have an account?"
       backButtonHref="/login"
+      showSocial
     >
       <Form {...form}>
         <form
