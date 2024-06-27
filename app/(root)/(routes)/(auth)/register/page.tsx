@@ -49,7 +49,6 @@ export default function Page() {
       headerTitle="Register"
       backButtonLabel="Already have an account?"
       backButtonHref="/login"
-      showSocial
     >
       <Form {...form}>
         <form
@@ -116,7 +115,7 @@ export default function Page() {
             />
             <div></div>
           </div>
-          <Button className="w-full" disabled={isPending} type="submit">
+          <Button className="w-[80%]" disabled={isPending} type="submit">
             Register
           </Button>
         </form>

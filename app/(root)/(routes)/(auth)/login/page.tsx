@@ -115,7 +115,7 @@ export default function Page() {
               )}
             />
           </div>
-          <Button className="w-full" disabled={isPending} type="submit">
+          <Button className="w-[80%]" disabled={isPending} type="submit">
             Login
           </Button>
         </form>
