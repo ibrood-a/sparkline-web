@@ -13,14 +13,12 @@ export default async function PostPageServer() {
   }
 
   const selectedDate = null;
-  const { videoUrl } = useHandleFileUpload();
 
   console.log(role)
   return (
-    <div className="flex justify-center items-center min-h-screen p-5">
-      <div className="flex justify-center w-full max-w-4xl">
-        <PostForm videoUrl={videoUrl} selectedDate={selectedDate} role={role}/>
-      </div>
+
+    <div className={"max-w-6xl mx-auto px-6 py-4"}>
+        <PostForm selectedDate={selectedDate} role={role}/>
     </div>
   );
 }

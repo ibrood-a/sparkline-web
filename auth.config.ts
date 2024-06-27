@@ -9,18 +9,8 @@ import { getUserByEmail } from '@/data/user'
 
 export default {
   providers: [
-    // OAuth authentication providers... the raw data is found at /api/auth/providers
-    Github({
-      clientId: process.env.GITHUB_CLIENT_ID,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET
-    }),
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET
-    }),
-
     Credentials({
-      async authorize(credentials) {
+      async authorize(credentials): Promise<any> {
         const validatedFields = await LoginSchema.safeParse(credentials)
 
         if (validatedFields.success) {

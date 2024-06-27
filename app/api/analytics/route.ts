@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from 'next'
+'use server'
 import { auth } from '@/auth'
 import axios from 'axios'
 import { NextResponse } from 'next/server'
@@ -12,9 +12,11 @@ export async function GET(req: Request) {
       return new NextResponse('Unauthorized', { status: 401 })
     }
 
-    const payload = {user: user?.user.id, iss: process.env.JWT_ISSUER};
+    const payload = {userId: user?.user.id, iss: process.env.JWT_ISSUER};
+    console.log(payload)
     const token = jwt.encode(payload, process.env.JWT_SECRET!!, "HS256");
 
+    console.log(payload, token)
     const [videoResponse, channelResponse] = await Promise.all([
       axios.get(`${process.env.API_URL}/socials/analyze/youtube/post`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -23,9 +25,6 @@ export async function GET(req: Request) {
         headers: { Authorization: `Bearer ${token}` },
       })
     ]);
-
-    localStorage.setItem('videoData', JSON.stringify(videoResponse.data));
-    localStorage.setItem('channelData', JSON.stringify(channelResponse.data.items[0]));
 
     return new NextResponse(JSON.stringify({ videoData: videoResponse.data, channelData: channelResponse.data.items[0] }))
   } catch (error) {

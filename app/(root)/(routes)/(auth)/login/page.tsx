@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useTransition } from 'react'
-import { login } from '@/app/api/auth/login/login'
+import { login } from '@/actions/login'
 import toast from 'react-hot-toast'
 
 export default function Page() {

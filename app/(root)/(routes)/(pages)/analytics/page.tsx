@@ -12,8 +12,8 @@ export default async function AnalyticsPage() {
   }
 
   // Fetch data from localStorage (simulated here since localStorage is not available on the server)
-  const videoDataCache = null; // localStorage.getItem('videoData') would go here in a client environment
-  const channelDataCache = null; // localStorage.getItem('channelData') would go here in a client environment
+  const videoDataCache: string = ""; // localStorage.getItem('videoData') would go here in a client environment
+  const channelDataCache: string = ""; // localStorage.getItem('videoData') would go here in a client environments
 
   // Fetch the analytics data
   const { videoData, channelData, error } = await fetchAnalytics(videoDataCache, channelDataCache);

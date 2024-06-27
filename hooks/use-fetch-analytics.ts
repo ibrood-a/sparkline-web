@@ -2,8 +2,9 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
-import { PlaylistItemsResponse } from '@/app/(root)/(routes)/post/_components/video-response-type'
-import { ChannelData } from '@/app/(root)/(routes)/post/handleRequests'
+import { PlaylistItemsResponse } from '@/app/(root)/(routes)/(pages)/analytics/_components/video-response-type'
+import { ChannelData } from '@/app/(root)/(routes)/(pages)/analytics/render-analytics'
+import { getItem, setItem } from '@/lib/indexed-db';
 
 interface FetchAnalyticsResult {
   error: string | null;
@@ -21,7 +22,11 @@ interface BarChartData {
   total: number;
 }
 
-export async function fetchAnalytics(videoDataCache: string | null, channelDataCache: string | null): Promise<FetchAnalyticsResult> {
+const DB_NAME = 'AnalyticsDB';
+const STORE_NAME = 'Cache';
+
+export async function fetchAnalytics(videoDataCache: string, channelDataCache: string): Promise<FetchAnalyticsResult> {
+
   if (videoDataCache && channelDataCache) {
     return {
       videoData: JSON.parse(videoDataCache),

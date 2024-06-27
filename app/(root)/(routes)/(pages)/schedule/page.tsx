@@ -1,26 +1,28 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
-import { auth } from '@/auth'
-import { redirect } from 'next/navigation'
-import PostForm from '../post/_components/post-form'
-import { Calendar } from 'lucide-react'
+import { useRouter } from 'next/navigation';
+import PostForm from '../post/_components/post-form';
+import { Calendar } from 'lucide-react';
+import { auth } from '@/auth';
 
-interface SchedulePageProps {
-  user: {
-    accounts: Array<{ provider: string }>;
-  }
-}
-
-const SchedulePage: React.FC<SchedulePageProps> = async () => {
+const SchedulePage: React.FC = () => {
   const [visible, setVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
+  const [role, setRole] = useState<string | null>(null);
+  const router = useRouter();
 
-  const role = await auth();
-
-  if (!role) {
-    return redirect('/login');
-  }
+  useEffect(() => {
+    const fetchRole = async () => {
+      const userRole = await auth();
+      if (!userRole) {
+        router.push('/login');
+      } else {
+        setRole(userRole.user.role);
+      }
+    };
+    fetchRole();
+  }, [router]);
 
   const handleSelect = (date: Dayjs) => {
     setSelectedDate(date);
@@ -43,12 +45,8 @@ const SchedulePage: React.FC<SchedulePageProps> = async () => {
         {visible && (
           <div style={{ backgroundColor: '#fff', borderRadius: '10px', padding: '20px' }}>
             <h3>Scheduled Date</h3>
-            {selectedDate && (
-              <PostForm
-                videoUrl={''}
-                selectedDate={selectedDate}
-                role={role}
-              />
+            {selectedDate && role && (
+              <PostForm selectedDate={selectedDate} role={role} />
             )}
             <button onClick={handleCancel} style={{ marginTop: '10px' }}>Cancel</button>
           </div>

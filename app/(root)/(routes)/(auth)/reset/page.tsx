@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 
 import { useState, useTransition } from 'react'
-import { reset } from '@/app/api/auth/reset/reset'
+import { reset } from '@/actions/reset'
 import { toast } from 'react-hot-toast'
 
 export default function ResetForm() {
@@ -31,7 +31,7 @@ export default function ResetForm() {
 
   const onSubmit = (values: z.infer<typeof ResetSchema>) => {
     startTransition(() => {
-      reset(values).then((data) => {
+      reset(values).then((data: any) => {
         if (data?.error) {
           toast.error(data.error)
         }
@@ -47,7 +47,7 @@ export default function ResetForm() {
     <CardWrapper
       headerTitle="Password Reset"
       backButtonLabel="Back to route"
-      backButtonHref="/route"
+      backButtonHref="/login"
     >
       <Form {...form}>
         <form

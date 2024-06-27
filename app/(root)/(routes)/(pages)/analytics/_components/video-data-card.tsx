@@ -1,8 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
-import { LucideIcon } from 'lucide-react';
-import { PlaylistItemsResponse } from '@/app/(root)/(routes)/post/_components/video-response-type'
+import { PlaylistItemsResponse } from '../_components/video-response-type'
 
 export const VideoDataCard = ({
   kind, items, etag, pageInfo

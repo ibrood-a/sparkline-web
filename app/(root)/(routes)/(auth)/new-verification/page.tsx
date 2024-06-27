@@ -1,10 +1,10 @@
 'use client'
 
 import { CardWrapper } from '@/components/auth/card-wrapper'
-import { route } from '@/app/api/auth/new-verification/route'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
+import { newVerification } from '@/actions/new-verification'
 
 export default function NewVerificationForm() {
   const [error, setError] = useState<string | undefined>()
@@ -20,7 +20,7 @@ export default function NewVerificationForm() {
       toast.error('No token provided')
       return
     }
-    route(token)
+    newVerification(token)
       .then((data: any) => {
         if (data?.error) {
           setTimeout(() => {
@@ -57,7 +57,7 @@ export default function NewVerificationForm() {
     <CardWrapper
       headerTitle="Verify your email"
       backButtonLabel="Back to Login"
-      backButtonHref="/route"
+      backButtonHref="/login"
     >
       <div className="flex items-center w-full justify-center">
         {!success && !error && <p>Verifying...</p>}
