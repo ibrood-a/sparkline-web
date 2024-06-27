@@ -2,33 +2,41 @@ import React from 'react';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import ClientComponent from './render-analytics';
-import { fetchAnalytics } from '@/hooks/use-fetch-analytics';
+import axios from 'axios';
+import jwt from 'jwt-simple';
+
+async function fetchAnalytics(userId: string) {
+  const payload = { userId, iss: process.env.JWT_ISSUER };
+  const token = jwt.encode(payload, process.env.JWT_SECRET!!, 'HS256');
+
+  const [videoResponse, channelResponse] = await Promise.all([
+    axios.post(
+      `${process.env.API_URL}/socials/analyze/youtube/post`,
+      { token },
+      { headers: { 'Content-Type': 'application/json' } }
+    ),
+    axios.post(
+      `${process.env.API_URL}/socials/analyze/youtube/page`,
+      { token },
+      { headers: { 'Content-Type': 'application/json' } }
+    ),
+  ]);
+
+  return {
+    videoData: videoResponse.data,
+    channelData: channelResponse.data.items[0],
+  };
+}
 
 export default async function AnalyticsPage() {
-  const role = await auth();
+  const user = await auth();
 
-  if (!role) {
+  if (!user || !user.user.id) {
     return redirect('/login');
   }
 
-  // Fetch data from localStorage (simulated here since localStorage is not available on the server)
-  const videoDataCache: string = ""; // localStorage.getItem('videoData') would go here in a client environment
-  const channelDataCache: string = ""; // localStorage.getItem('videoData') would go here in a client environments
-
   // Fetch the analytics data
-  const { videoData, channelData, error } = await fetchAnalytics(videoDataCache, channelDataCache);
-
-  if (error) {
-    console.error('Error fetching analytics data:', error);
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="alert alert-error">
-          <div className="alert-title">Error</div>
-          <div className="alert-description">There was an error fetching analytics data.</div>
-        </div>
-      </div>
-    );
-  }
+  const { videoData, channelData } = await fetchAnalytics(user.user.id!!);
 
   return <ClientComponent initialVideoData={videoData} initialChannelData={channelData} />;
 }
