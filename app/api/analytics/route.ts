@@ -18,12 +18,8 @@ export async function GET(req: Request) {
 
     console.log(payload, token)
     const [videoResponse, channelResponse] = await Promise.all([
-      axios.get(`${process.env.API_URL}/socials/analyze/youtube/post`, {
-        headers: { Authorization: `Bearer ${token}` },
-      }),
-      axios.get(`${process.env.API_URL}/socials/analyze/youtube/page`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      axios.post(`${process.env.API_URL}/socials/analyze/youtube/post`, token),
+      axios.post(`${process.env.API_URL}/socials/analyze/youtube/page`, token),
     ]);
 
     return new NextResponse(JSON.stringify({ videoData: videoResponse.data, channelData: channelResponse.data.items[0] }))
