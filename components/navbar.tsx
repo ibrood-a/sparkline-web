@@ -37,7 +37,6 @@ export const navPagesAuthed = [
   },
 ]
 
-
 export const Navbar = async () => {
   const role = await auth();
   const nav = role ? navPagesAuthed : navPages;
@@ -45,6 +44,7 @@ export const Navbar = async () => {
     <nav className="top-0 w-full z-50 transition">
       <div className="max-w-6xl mx-auto px-6 py-4">
         <div className="flex justify-between items-center">
+          <MobileSidebar />
           {/* Logo */}
           <Link href="/">
             <Logo />

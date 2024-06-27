@@ -58,13 +58,11 @@ export default function Page() {
       })
     })
   }
-
   return (
     <CardWrapper
       headerTitle="Login"
       backButtonLabel="Don't have an account?"
       backButtonHref="/register"
-      showSocial
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-1">
@@ -104,6 +102,7 @@ export default function Page() {
                     />
                   </FormControl>
                   <FormMessage className="text-red-500" />
+
                   <Button
                     size="sm"
                     variant="link"
@@ -115,11 +114,14 @@ export default function Page() {
               )}
             />
           </div>
-          <Button className="w-[80%]" disabled={isPending} type="submit">
-            Login
-          </Button>
+
+          <div className="justify-center">
+            <Button className="w-full" disabled={isPending} type="submit">
+              Login
+            </Button>
+          </div>
         </form>
       </Form>
     </CardWrapper>
-  )
+)
 }

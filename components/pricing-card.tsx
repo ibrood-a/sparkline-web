@@ -136,7 +136,7 @@ export const PricingCard = () => {
               </ul>
             </div>
             {/* Button */}
-            <div className="mt-6">
+            <div className="mt-6 flex">
               <Button
                 disabled={!tier.yourProduct}
                 onClick={onClick}

@@ -115,11 +115,14 @@ export default function Page() {
             />
             <div></div>
           </div>
-          <Button className="w-[80%]" disabled={isPending} type="submit">
-            Register
-          </Button>
+
+          <div className="justify-center">
+            <Button className="w-full" disabled={isPending} type="submit">
+              Register
+            </Button>
+          </div>
         </form>
       </Form>
     </CardWrapper>
-  )
+)
 }

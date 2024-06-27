@@ -96,7 +96,7 @@ const PostForm: React.FC<PostFormProps> = ({ selectedDate, role }) => {
 
       <CardWrapper headerTitle={"Video Preview"}>
         <FileUpload userId={role.user.id} setVideoUrl={setVideoUrl} />
-        <Button>
+        <Button className="w-full">
           <a href={link}>Link Google Account</a>
         </Button>
       </CardWrapper>
@@ -109,8 +109,8 @@ const PostForm: React.FC<PostFormProps> = ({ selectedDate, role }) => {
               selectedPlatforms={selectedPlatforms}
               handleSwitchChange={handleSwitchChange}
             />
-            <div className="flex justify-center">
-              <Button className="w-[50%] mt-2" type="submit">
+            <div className="justify-center">
+              <Button className="w-full mt-2" type="submit">
                 Post
               </Button>
             </div>

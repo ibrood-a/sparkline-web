@@ -70,7 +70,7 @@ const PostFormFields: React.FC<PostFormFieldsProps> = ({ form, selectedPlatforms
     <div className="flex gap-5 justify-center">
       {['youtube', 'twitter', 'instagram', 'facebook'].map((platform) => (
         <div key={platform} className="flex items-center">
-          <Label.Root className="text-gray-700 mr-2">
+          <Label.Root className="mr-2">
             {platform.charAt(0).toUpperCase() + platform.slice(1)}
           </Label.Root>
           <Switch.Root

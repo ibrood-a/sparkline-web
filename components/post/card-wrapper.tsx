@@ -15,12 +15,12 @@ export const CardWrapper = ({
   headerTitle,
 }: CardWrapperProps) => {
   return (
-    <Card className="mx-auto w-3xl bg-secondary/90 border border-foreground/5 rounded-lg px-7 p-5">
+    <Card className="mx-auto w-auto bg-secondary/90 border border-foreground/5 rounded-lg px-7 p-5">
       <CardHeader>
         <Header title={headerTitle} />
       </CardHeader>
 
-      <div>{children}</div>
+        <div>{children}</div>
     </Card>
-  )
+)
 }
