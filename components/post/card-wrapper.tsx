@@ -7,19 +7,14 @@ import { Card, CardFooter, CardHeader } from '@/components/ui/card'
 
 interface CardWrapperProps {
   children: React.ReactNode
-  headerTitle: string
+  className: string
 }
 
 export const CardWrapper = ({
-  children,
-  headerTitle,
+  children, className,
 }: CardWrapperProps) => {
   return (
-    <Card className="mx-auto w-auto bg-secondary/90 border border-foreground/5 rounded-lg px-7 p-5">
-      <CardHeader>
-        <Header title={headerTitle} />
-      </CardHeader>
-
+    <Card className={"mx-auto w-6xl bg-secondary/90 border border-foreground/5 rounded-lg px-7 p-5" + className}>
         <div>{children}</div>
     </Card>
 )

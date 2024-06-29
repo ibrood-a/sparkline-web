@@ -29,7 +29,7 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?
-  role          UserRole           @default(USER)
+  role          String @db.VarChar(10) @default("USER")
   accounts      Account[]
   createdAt     DateTime           @default(now())
   subscriptions UserSubscription[]

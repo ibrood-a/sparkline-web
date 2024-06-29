@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card'
+import { CardWrapper } from '@/components/post/card-wrapper'
 
 interface FileUploadProps {
   userId: number;
@@ -73,47 +75,47 @@ const FileUpload: React.FC<FileUploadProps> = ({ userId, setVideoUrl }) => {
   };
 
   return (
-    <div>
+      <div className="rounded-xl">
       {!preview && (
+        <CardWrapper className="h-50 w-full">
         <div
           onDrop={handleDrop}
           onDragOver={handleDragOver}
-          style={{
-            border: '2px dashed #d9d9d9',
-            borderRadius: '4px',
-            padding: '20px',
-            textAlign: 'center',
-            marginBottom: '24px',
-          }}
+          onClick={() => document.getElementById('fileUpload')?.click()}
+          className="flex flex-col items-center justify-center rounded-lg text-center cursor-pointer hover:bg-gray-700 hover:bg-opacity-30 h-64 w-full"
         >
-          <p>Click or drag file to this area to upload</p>
-          <p>Support for a single upload.</p>
+          <p className="">Click or drag file to this area to upload</p>
+          <p className="text-gray-400">Support for a single upload.</p>
           <input
             type="file"
             accept=".mp4,.mov,.avi,.jpg,.jpeg,.png"
             onChange={handleFileChange}
-            style={{ display: 'none' }}
+            className="hidden"
             id="fileUpload"
           />
-          <label htmlFor="fileUpload" style={{ cursor: 'pointer', color: 'blue', textDecoration: 'underline' }}>
+          <label htmlFor="fileUpload" className="text-blue-500 cursor-pointer hover:underline">
             Choose a file
           </label>
         </div>
+        </CardWrapper>
       )}
       {preview && (
-        <div style={{ textAlign: 'center', marginBottom: 12 }}>
-          <video width="100%" style={{ marginBottom: 10 }} controls>
+        <div className="relative text-center">
+          <video width="100%" className="rounded-lg" controls>
             <source src={preview} type="video/mp4" />
             Your browser does not support the video tag.
           </video>
-          <Button onClick={handleRemovePreview}>
+          <button
+            onClick={handleRemovePreview}
+            className="absolute top-2 right-2 bg-opacity-0 cursor-pointer shadow-xl hover:bg-opacity-10 rounded-full px-2 py-1 text-black"
+          >
             Remove Video
-          </Button>
+          </button>
         </div>
+
       )}
-    </div>
+      </div>
   );
 };
 
 export default FileUpload;
-
