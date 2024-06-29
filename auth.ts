@@ -2,7 +2,7 @@ import NextAuth from 'next-auth';
 import { getUserById } from '@/data/user';
 import { db } from '@/lib/db';
 import authConfig from '@/auth.config';
-import { Account, UserRole } from '@prisma/client';
+import { Account } from '@prisma/client';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 
 export const {
@@ -36,7 +36,7 @@ export const {
     async session({ session, token }) {
       if (token.sub && session.user) {
         session.user.id = token.sub;
-        session.user.role = token.role as UserRole;
+        session.user.role = token.role as String;
         session.user.accounts = token.accounts as Account[];
       }
 
