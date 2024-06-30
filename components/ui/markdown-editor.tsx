@@ -19,7 +19,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange }) => {
   return (
     <MdEditor
       value={value}
-      className={'h-full'}
+      className={'h-full bg-background rounded-md p-4 border border-primary/10 focus:border-primary/50 focus:ring focus:ring-primary/50 focus:ring-opacity-50'}
       renderHTML={(text) => mdParser.render(text)}
       onChange={handleEditorChange}
     />

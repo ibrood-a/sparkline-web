@@ -9,14 +9,17 @@ import * as Switch from '@radix-ui/react-switch';
 import { Form } from '@/components/ui/form';
 import { CardWrapper } from '@/components/post/card-wrapper';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import FileUpload from './file-upload';
 import { generateGoogleOAuthLink } from '@/lib/oauth';
 import dynamic from 'next/dynamic';
+import { categories } from '@/data/youtube'
+import { Select } from '@/components/ui/select'
 
 const MarkdownEditor = dynamic(() => import('@/components/ui/markdown-editor'), { ssr: false });
 
 interface PostFormProps {
-  selectedDate: Dayjs | null;
+  selectedDate: Date | null;
   role: any; // Update this to the specific type if you have one
 }
 
@@ -64,7 +67,7 @@ const PostForm: React.FC<PostFormProps> = ({ selectedDate, role }) => {
   };
 
   const onSubmit = (values: {
-    dateToPost: Dayjs | null;
+    dateToPost: Date | null;
     description: string;
     title: string;
     categoryId: number;
@@ -103,9 +106,8 @@ const PostForm: React.FC<PostFormProps> = ({ selectedDate, role }) => {
                 <Label.Root className="block text-sm font-medium mt-4">
                   Title
                 </Label.Root>
-                <input
+                <Input
                   {...form.register('title')}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 "
                 />
               </div>
               <div>
@@ -128,23 +130,53 @@ const PostForm: React.FC<PostFormProps> = ({ selectedDate, role }) => {
 
       <div className="md:col-span-1 grid gap-6 h-auto max-h-2xl w-full">
         <CardWrapper className="h-auto w-full ">
-          <div className="flex flex-col space-y-4">
+          <div className="flex flex-col space-y-6 pt-6 pb-6">
             {Object.keys(selectedPlatforms).map((platform) => (
-              <div key={platform} className="flex items-center justify-between mt-5">
-                <Label.Root className="text-lg font-medium">
-                  {platform.charAt(0).toUpperCase() + platform.slice(1)}
-                </Label.Root>
-                <Switch.Root
-                  className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200"
-                  checked={selectedPlatforms[platform]}
-                  onCheckedChange={(checked) => handleSwitchChange(platform, checked)}
-                >
-                  <Switch.Thumb
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
-                      selectedPlatforms[platform] ? 'translate-x-6 bg-blue-600' : 'translate-x-1'
-                    }`}
-                  />
-                </Switch.Root>
+              <div>
+                <div key={platform} className="flex items-center justify-between">
+                  <Label.Root className="text-lg font-medium">
+                    {platform.charAt(0).toUpperCase() + platform.slice(1)}
+                  </Label.Root>
+                  <Switch.Root
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full ${selectedPlatforms[platform] ? 'bg-primary' : 'bg-background'}`}
+                    checked={selectedPlatforms[platform]}
+                    onCheckedChange={(checked: boolean) => handleSwitchChange(platform, checked)}
+                  >
+                    <Switch.Thumb
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${selectedPlatforms[platform] ? 'translate-x-6' : 'translate-x-1'}`}
+                    />
+                  </Switch.Root>
+                </div>
+                {platform === 'youtube' && selectedPlatforms[platform] && (
+                  <div>
+                    <div>
+                      <Label.Root className="block text-sm font-medium mt-4">
+                        Category
+                      </Label.Root>
+                      <Select
+                        {...form.register('categoryId', { required: true })}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50"
+                      >
+                        <option value="">Select a category</option>
+                        {categories.map((category) => (
+                          <option key={category.value} value={category.value}>
+                            {category.label}
+                          </option>
+                        ))}
+                      </Select>
+                    </div>
+                    <div>
+                      <Label.Root className="block text-sm font-medium mt-4">
+                        Tags
+                      </Label.Root>
+                      <Input
+                        {...form.register('tags')}
+                        placeholder="e.g., tag1,tag2"
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>

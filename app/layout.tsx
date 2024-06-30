@@ -33,8 +33,8 @@ export default async function RootLayout({
             disableTransitionOnChange
           >
             <ToastProvider />
-            {<AlertDemo />}
             <Navbar />
+            {<AlertDemo />}
             {children}
           </ThemeProvider>
         </body>

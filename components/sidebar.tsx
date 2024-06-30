@@ -8,44 +8,32 @@ import { Logo } from '@/components/logo'
 
 const sidebarPages = [
   {
-    link: '/',
-    title: 'Home'
+    title: 'Pricing',
+    link: '/#pricing'
   },
   {
-    link: '#profile',
-    title: 'Profile'
+    title: 'Tos',
+    link: '/tos'
   },
   {
-    link: '#purchases',
-    title: 'Purchases'
-  }
+    title: 'Privacy',
+    link: '/privacy'
+  },
 ]
 
-const socials = [
+export const sidebarPagesAuthed = [
   {
-    link: '#',
-    title: 'Github'
+    title: 'Dashboard',
+    link: '/analytics'
   },
   {
-    link: '#',
-    title: 'Youtube'
+    title: 'Post',
+    link: '/post'
   },
   {
-    link: '#',
-    title: 'Twitter'
+    title: 'Schedule',
+    link: '/schedule'
   },
-  {
-    link: '#',
-    title: 'Tiktok'
-  },
-  {
-    link: '#',
-    title: 'Instagram'
-  },
-  {
-    link: '#',
-    title: 'Discord'
-  }
 ]
 
 interface SidebarProps {
@@ -57,6 +45,8 @@ export const Sidebar = ({ closeSidebar }: SidebarProps) => {
   const Logout = () => {
     signOut()
   }
+
+  const tabs = session ? sidebarPagesAuthed : sidebarPages
   return (
     <div className="flex flex-col justify-between pl-2">
       <Link href="/" onClick={closeSidebar}>
@@ -69,7 +59,7 @@ export const Sidebar = ({ closeSidebar }: SidebarProps) => {
         <div className="space-y-4">
           <div className="ml-2">
             <h1 className="text-xl font-semibold">Main</h1>
-            {sidebarPages.map((page) => (
+            {tabs.map((page) => (
               <Link
                 key={page.link}
                 href={page.link}
@@ -86,20 +76,24 @@ export const Sidebar = ({ closeSidebar }: SidebarProps) => {
           </div>
           <div className="ml-2">
             <h1 className="text-xl font-semibold">Socials</h1>
-            {socials.map((page) => (
-              <Link
-                key={page.link}
-                href={page.link}
-                className={cn(
-                  'group flex w-full justify-start font-light cursor-pointer py-1.5'
-                )}
-                onClick={closeSidebar}
-              >
-                <div className="flex w-full">
-                  <p className="font-normal text-foreground/75">{page.title}</p>
-                </div>
-              </Link>
-            ))}
+            {/*
+              {
+                socials.map((page) => (
+                  <Link
+                    key={page.link}
+                    href={page.link}
+                    className={cn(
+                      'group flex w-full justify-start font-light cursor-pointer py-1.5'
+                    )}
+                    onClick={closeSidebar}
+                  >
+                    <div className="flex w-full">
+                      <p className="font-normal text-foreground/75">{page.title}</p>
+                    </div>
+                  </Link>
+                ))
+              }
+            */}
           </div>
           {session ? (
             <Link

@@ -25,7 +25,7 @@ export const usePostVideo = () => {
     };
 
     const postVideo = async (userId: number, values: {
-        dateToPost: Dayjs | null;
+        dateToPost: Date | null;
         description: string;
         title: string;
         categoryId: number;
