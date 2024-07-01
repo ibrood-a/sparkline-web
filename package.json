@@ -24,6 +24,7 @@
     "@aldabil/react-scheduler": "^2.9.3",
     "@auth/prisma-adapter": "^2.1.0",
     "@date-io/dayjs": "^3.0.0",
+    "@emotion/react": "^11.11.4",
     "@hookform/resolvers": "^3.3.4",
     "@mui/material": "^5.15.18",
     "@neondatabase/serverless": "^0.9.1",
