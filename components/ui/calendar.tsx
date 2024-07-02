@@ -14,7 +14,7 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({ role }) => {
 
   const CustomEditor = ({ scheduler, selectedDate, role }: { scheduler: SchedulerHelpers; selectedDate: Date | null; role: any }) => {
     return (
-      <div>
+      <div className={"bg-background rounded-xl"}>
         <PostForm selectedDate={selectedDate} role={role} />
         <Button onClick={scheduler.close}>Cancel</Button>
       </div>
@@ -32,6 +32,7 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({ role }) => {
   };
 
   return (
+    <div className={"bg-background rounded-lg"}>
     <Scheduler
       view="month"
       events={[]}
@@ -44,6 +45,7 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({ role }) => {
       )}
       onConfirm={handleConfirm}
     />
+    </div>
   );
 };
 

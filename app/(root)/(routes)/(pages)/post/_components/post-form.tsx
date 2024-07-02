@@ -123,7 +123,7 @@ const PostForm: React.FC<PostFormProps> = ({ selectedDate, role }) => {
 
         </div>
 
-        <div className="md:col-span-1 grid">
+        <div className="md:col-span-1 grid mr-6">
           <CardWrapper>
             <div className="flex flex-col space-y-4">
               {Object.keys(selectedPlatforms).map((platform) => (
