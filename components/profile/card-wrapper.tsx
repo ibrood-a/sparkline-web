@@ -7,13 +7,14 @@ import { Card, CardFooter, CardHeader } from '@/components/ui/card'
 
 interface CardWrapperProps {
   children: React.ReactNode
+  className: string
 }
 
 export const CardWrapper = ({
-  children,
+  children, className,
 }: CardWrapperProps) => {
   return (
-    <Card className={"mx-auto w-full bg-secondary/90 border border-foreground/5 rounded-lg p-4"}>
+    <Card className={"mx-auto w-full bg-secondary/90 border border-foreground/5 rounded-lg px-7 p-5" + className}>
         <div>{children}</div>
     </Card>
 )

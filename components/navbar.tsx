@@ -35,6 +35,10 @@ export const navPagesAuthed = [
     title: 'Schedule',
     link: '/schedule'
   },
+  {
+    title: 'Profile',
+    link: '/profile'
+  },
 ]
 
 export const Navbar = async () => {

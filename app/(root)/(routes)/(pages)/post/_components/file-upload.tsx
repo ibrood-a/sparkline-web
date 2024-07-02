@@ -75,9 +75,9 @@ const FileUpload: React.FC<FileUploadProps> = ({ userId, setVideoUrl }) => {
   };
 
   return (
-      <div className="rounded-xl">
+      <div className="grid rounded-xl">
       {!preview && (
-        <CardWrapper className="h-50 w-full">
+        <CardWrapper className="h-full w-full">
         <div
           onDrop={handleDrop}
           onDragOver={handleDragOver}

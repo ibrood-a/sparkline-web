@@ -8,10 +8,10 @@ export const generateGoogleOAuthLink = async (userId: number) => {
   const googleClientId = process.env.GOOGLE_CLIENT_ID;
   const redirectUri = `${process.env.API_URL}/socials/auth/youtube`
 
-  const payload = {userId, platform: 'web', code_verifier: '', iss: process.env.JWT_ISSUER};
+  const payload = { userId, platform: 'web', code_verifier: '', iss: process.env.JWT_ISSUER };
   const state = jwt.encode(payload, secretKey, "HS256");
 
- return `https://accounts.google.com/o/oauth2/v2/auth?client_id=${googleClientId}&redirect_uri=${encodeURIComponent(redirectUri!!)}&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fyoutube.upload%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fyoutube.readonly%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fyoutube%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fyoutube.force-ssl%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fyt-analytics.readonly%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fyt-analytics-monetary.readonly&response_type=code&access_type=offline&prompt=consent&state=${state}`;
+  return `https://accounts.google.com/o/oauth2/v2/auth?client_id=${googleClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fyoutube.upload%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fyoutube.readonly%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fyoutube%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fyoutube.force-ssl%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fyt-analytics.readonly%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fyt-analytics-monetary.readonly&response_type=code&access_type=offline&prompt=consent&state=${state}`;
 };
 
 export const generateFacebookOAuthLink = async (userId: number) => {
@@ -28,10 +28,10 @@ export const generateFacebookOAuthLink = async (userId: number) => {
     'business_management'
   ].join(',');
 
-  const payload = {userId, platform: 'web', code_verifier: '', iss: process.env.JWT_ISSUER};
+  const payload = { userId, platform: 'web', code_verifier: '', iss: process.env.JWT_ISSUER };
   const state = jwt.encode(payload, secretKey, "HS256");
 
-  window.location.href = `https://www.facebook.com/v11.0/dialog/oauth?client_id=${facebookClientId}&redirect_uri=${encodeURIComponent(redirectUri!!)}&scope=${encodeURIComponent(scopes)}&response_type=code&state=${state}`;
+  return `https://www.facebook.com/v11.0/dialog/oauth?client_id=${facebookClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}&response_type=code&state=${state}`;
 };
 
 export const generateTwitterOAuthLink = async (userId: number) => {
@@ -63,18 +63,17 @@ export const generateTwitterOAuthLink = async (userId: number) => {
     "bookmark.write"
   ].join(' ');
 
-  const payload = {userId, platform: 'web', code_verifier: verifier, iss: process.env.JWT_ISSUER};
+  const payload = { userId, platform: 'web', code_verifier: verifier, iss: process.env.JWT_ISSUER };
   const state = jwt.encode(payload, secretKey, "HS256");
 
-  window.location.href = `https://twitter.com/i/oauth2/authorize?response_type=code&client_id=${twitterClientId}&redirect_uri=${encodeURIComponent(redirectUri!!)}&scope=${encodeURIComponent(scopes)}&state=${state}&code_challenge=${challenge}&code_challenge_method=S256`;
+  return `https://twitter.com/i/oauth2/authorize?response_type=code&client_id=${twitterClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}&state=${state}&code_challenge=${challenge}&code_challenge_method=S256`;
 };
-
 
 export const generateLinkedInOAuthLink = async (userId: number) => {
   const secretKey = process.env.JWT_SECRET || "";
   const linkedInClientId = process.env.LINKEDIN_CLIENT_ID;
   const redirectUri = `${process.env.API_URL}/socials/auth/linkedin`
-  const payload = {userId, platform: 'web', code_verifier: '', iss: process.env.JWT_ISSUER};
+  const payload = { userId, platform: 'web', code_verifier: '', iss: process.env.JWT_ISSUER };
   const state = jwt.encode(payload, secretKey, "HS256");
 
   const scopes = [
@@ -83,9 +82,8 @@ export const generateLinkedInOAuthLink = async (userId: number) => {
     'w_member_social'
   ].join(' ');
 
-  window.location.href = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${linkedInClientId}&redirect_uri=${encodeURIComponent(redirectUri!!)}&scope=${encodeURIComponent(scopes)}&state=${state}`;
+  return `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${linkedInClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}&state=${state}`;
 };
-
 
 // Generate a random string
 const generateRandomString = (length: number) => {

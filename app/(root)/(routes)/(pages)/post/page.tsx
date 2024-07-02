@@ -17,8 +17,6 @@ export default async function PostPageServer() {
   console.log(role)
   return (
 
-    <div className={""}>
         <PostForm selectedDate={selectedDate} role={role}/>
-    </div>
   );
 }

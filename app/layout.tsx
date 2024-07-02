@@ -34,7 +34,6 @@ export default async function RootLayout({
           >
             <ToastProvider />
             <Navbar />
-            {<AlertDemo />}
             {children}
           </ThemeProvider>
         </body>
