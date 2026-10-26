@@ -55,6 +55,7 @@ final class WebViewController: UIViewController {
 
         let controller = WKUserContentController()
         PageScripts.userScripts().forEach(controller.addUserScript)
+        controller.add(ScriptMessageProxy(self), name: PageScripts.trackMonitorHandlerName)
         configuration.userContentController = controller
 
         webView = WKWebView(frame: .zero, configuration: configuration)
@@ -392,5 +393,31 @@ extension WebViewController: WKUIDelegate {
             return
         }
         present(alert, animated: true)
+    }
+}
+
+// MARK: - WKScriptMessageHandler
+
+extension WebViewController: WKScriptMessageHandler {
+
+    /// Microphone track events forwarded by `PageScripts.trackMonitor`.
+    ///
+    /// A `mute` arriving right after `app backgrounded` in the log is the exact
+    /// failure this app exists to prevent, and is the signal to try switching the
+    /// mitigations off one at a time.
+    func userContentController(_ userContentController: WKUserContentController,
+                               didReceive message: WKScriptMessage) {
+
+        guard message.name == PageScripts.trackMonitorHandlerName,
+              let body = message.body as? [String: Any],
+              let event = body["event"] as? String else { return }
+
+        let kind = body["kind"] as? String ?? "?"
+        var line = "track \(kind) \(event)"
+        if let readyState = body["readyState"] as? String { line += " (\(readyState))" }
+        if let muted = body["muted"] as? Bool, event == "acquired" { line += " (muted: \(muted))" }
+
+        DebugLog.shared.log(line)
+        hud?.refresh()
     }
 }
