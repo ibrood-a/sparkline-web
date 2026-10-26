@@ -49,6 +49,12 @@ enum AppConfig {
         set { UserDefaults.standard.set(newValue, forKey: Keys.keepAlive) }
     }
 
+    /// Remove WebKit's wait-and-see delay before every tap.
+    static var fastTaps: Bool {
+        get { flag(Keys.fastTaps, default: true) }
+        set { UserDefaults.standard.set(newValue, forKey: Keys.fastTaps) }
+    }
+
     /// Route to the speaker rather than the earpiece by default.
     static var defaultToSpeaker: Bool {
         get { flag(Keys.speaker, default: true) }
@@ -64,6 +70,7 @@ enum AppConfig {
     enum Keys {
         static let spoofVisibility = "CommzSpoofPageVisibility"
         static let keepAlive = "CommzBackgroundKeepAlive"
+        static let fastTaps = "CommzFastTaps"
         static let speaker = "CommzDefaultToSpeaker"
         static let debugHUD = "CommzDebugHUD"
     }

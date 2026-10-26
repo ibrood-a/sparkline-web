@@ -140,11 +140,53 @@ enum PageScripts {
 
     static let trackMonitorHandlerName = "commzTrack"
 
+    /// Removes the pause before every tap registers.
+    ///
+    /// When a page is zoomable, WebKit has to wait after a tap to find out
+    /// whether a second one is coming and it should zoom instead. That wait is
+    /// why a wrapper can feel like it needs a double tap to do anything.
+    ///
+    /// `touch-action: manipulation` says "pan and pinch are fine, double-tap zoom
+    /// is not", which drops the wait while keeping pinch-to-zoom on images. It is
+    /// applied to the interactive elements rather than everything, because
+    /// `touch-action` does not inherit and a blanket rule would also override
+    /// elements that legitimately set their own — custom sliders and drag handles.
+    static let fastTaps = """
+    (function () {
+      if (window.__commzFastTaps) { return; }
+      window.__commzFastTaps = true;
+
+      function inject() {
+        if (!document.head || document.getElementById('commz-fast-taps')) { return; }
+        var style = document.createElement('style');
+        style.id = 'commz-fast-taps';
+        style.textContent =
+          'html, body, a, button, input, select, textarea, label, summary,' +
+          '[role="button"], [role="link"], [role="tab"], [role="menuitem"],' +
+          '[role="option"], [role="switch"], [role="checkbox"], [onclick],' +
+          '[tabindex]:not([tabindex="-1"])' +
+          '{ touch-action: manipulation; }';
+        document.head.appendChild(style);
+      }
+
+      inject();
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', inject);
+      }
+    })();
+    """
+
     static func userScripts() -> [WKUserScript] {
         var scripts: [WKUserScript] = []
 
         if AppConfig.spoofPageVisibility {
             scripts.append(WKUserScript(source: keepPageVisible,
+                                        injectionTime: .atDocumentStart,
+                                        forMainFrameOnly: false))
+        }
+
+        if AppConfig.fastTaps {
+            scripts.append(WKUserScript(source: fastTaps,
                                         injectionTime: .atDocumentStart,
                                         forMainFrameOnly: false))
         }

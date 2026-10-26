@@ -47,7 +47,7 @@ Apple rejects it without a real CallKit/PushKit integration.
 
 ### Verifying it on device
 
-Three-finger tap anywhere to toggle a diagnostic overlay. It shows the live
+Shake the device to toggle a diagnostic overlay. It shows the live
 capture state, whether the keep-alive is running, the audio category and the
 current output route, over a log of recent events.
 
@@ -67,7 +67,8 @@ Run all four, confirming on a second device that you are still audible:
 | Another app for 5 min | Audio survives; watch for a *disconnect* instead (see below) |
 
 If a test fails, flip the mitigations off one at a time via `UserDefaults`
-(`CommzSpoofPageVisibility`, `CommzBackgroundKeepAlive`, `CommzDefaultToSpeaker`)
+(`CommzSpoofPageVisibility`, `CommzBackgroundKeepAlive`, `CommzDefaultToSpeaker`,
+`CommzFastTaps`)
 to find which one was carrying it — or which one caused it.
 
 ### If it still fails

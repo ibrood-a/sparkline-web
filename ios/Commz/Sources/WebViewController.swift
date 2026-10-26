@@ -170,10 +170,11 @@ final class WebViewController: UIViewController {
             errorView.trailingAnchor.constraint(equalTo: webView.trailingAnchor)
         ])
 
-        let hudTap = UITapGestureRecognizer(target: self, action: #selector(toggleHUD))
-        hudTap.numberOfTouchesRequired = 3
-        hudTap.cancelsTouchesInView = false
-        view.addGestureRecognizer(hudTap)
+        // No gesture recognizer for the overlay. A UITapGestureRecognizer on the
+        // root view delays every single-finger tap (delaysTouchesEnded defaults to
+        // true) while it waits to see whether more fingers are coming, which makes
+        // the whole page feel like it needs a second tap. Shake toggles it instead
+        // — nothing in the touch path at all. See `motionEnded`.
     }
 
     private func observeWebView() {
@@ -246,6 +247,22 @@ final class WebViewController: UIViewController {
     }
 
     // MARK: - Debug overlay
+
+    override var canBecomeFirstResponder: Bool { true }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        becomeFirstResponder()
+    }
+
+    /// Shake to toggle the diagnostic overlay.
+    override func motionEnded(_ motion: UIEvent.EventSubtype, with event: UIEvent?) {
+        guard motion == .motionShake else {
+            super.motionEnded(motion, with: event)
+            return
+        }
+        toggleHUD()
+    }
 
     @objc private func toggleHUD() {
         if hud == nil {
