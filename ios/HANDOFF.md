@@ -92,6 +92,18 @@ Defaults live in `AppConfig.swift` (`UserDefaults` keys are `Commz*`).
   input unit and leaves a track that is open but silent. This was the cause of
   "no microphone input detected", and why plugging in a headset fixed it — the
   route change rebuilt the unit. Build #5 made the shell hands-off by default.
+- **Never answer a route change the shell or WebKit caused.** Forcing the
+  speaker is itself a route change, WebKit answers route changes by rebuilding
+  its capture unit (and re-setting its category, which clears the override),
+  and the shell used to re-force the speaker on *every* route change. The two
+  took turns for 30–60 s after joining a lobby and again after every return to
+  the app: frozen UI and glitching audio, and each override also fired
+  `devicechange` in the page, which can make the web app re-open its mic.
+  1.0.1 (build 2) acts only on `newDeviceAvailable` / `oldDeviceUnavailable`,
+  overrides once after a 1 s settle, only when the output is the earpiece, and
+  never twice within 3 s. The keep-alive starts on `willResignActive` instead of
+  at capture start, so joining touches nothing. The overlay log now shows each
+  route change with its reason, which is how to confirm this on a device.
 - **Permission must be settled before the first page load.** A settings screen
   builds its device list from `enumerateDevices()`, and WebKit returns nothing
   usable from it until the app already holds microphone permission. Requesting it
