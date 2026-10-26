@@ -31,7 +31,7 @@ final class AudioSessionManager {
     // MARK: - Lifecycle
 
     func start() {
-        configureSession()
+        configureSession(forCapture: false)
 
         let center = NotificationCenter.default
         center.addObserver(self, selector: #selector(handleInterruption(_:)),
@@ -48,12 +48,15 @@ final class AudioSessionManager {
         isCaptureActive = active
 
         if active {
-            configureSession()
+            configureSession(forCapture: true)
             activateSession()
             startKeepAlive()
         } else {
             stopKeepAlive()
             deactivateSession()
+            // Back to plain playback, so clips and notification sounds are not
+            // stuck on the call routing until the next lobby.
+            configureSession(forCapture: false)
         }
 
         UIApplication.shared.isIdleTimerDisabled = active
@@ -62,21 +65,35 @@ final class AudioSessionManager {
 
     // MARK: - Session configuration
 
-    /// WebKit configures the audio session itself when `getUserMedia` starts, so
-    /// this is re-applied on every relevant transition rather than once at launch.
-    private func configureSession() {
-        var options: AVAudioSession.CategoryOptions = [.allowBluetooth, .allowBluetoothA2DP]
-        if AppConfig.defaultToSpeaker {
-            options.insert(.defaultToSpeaker)
-        }
-
+    /// The session has two states, and using the recording one all the time is a
+    /// mistake: `.playAndRecord` with `.voiceChat` is tuned for a call held to the
+    /// ear, so it makes ordinary media quiet and earpiece-routed. Outside a lobby
+    /// the app is just a web page that sometimes plays a clip, so it sits in
+    /// `.playback` until the page actually takes the microphone.
+    ///
+    /// WebKit also reconfigures the session itself when `getUserMedia` starts,
+    /// which is why this is re-applied on every relevant transition rather than
+    /// once at launch.
+    private func configureSession(forCapture: Bool) {
         do {
-            try session.setCategory(.playAndRecord, mode: .voiceChat, options: options)
+            if forCapture {
+                var options: AVAudioSession.CategoryOptions = [.allowBluetooth, .allowBluetoothA2DP]
+                if AppConfig.defaultToSpeaker {
+                    options.insert(.defaultToSpeaker)
+                }
+
+                do {
+                    try session.setCategory(.playAndRecord, mode: .voiceChat, options: options)
+                } catch {
+                    // `.voiceChat` rejects some option combinations on older
+                    // devices; fall back so we still get record + background.
+                    try session.setCategory(.playAndRecord, options: options)
+                }
+            } else {
+                try session.setCategory(.playback, mode: .default, options: [])
+            }
         } catch {
-            DebugLog.shared.log("setCategory failed: \(error.localizedDescription)")
-            // `.voiceChat` rejects some option combinations on older devices;
-            // fall back to the plain category so we still get record + background.
-            try? session.setCategory(.playAndRecord, options: options)
+            DebugLog.shared.log("setCategory(capture: \(forCapture)) failed: \(error.localizedDescription)")
         }
     }
 
@@ -182,7 +199,7 @@ final class AudioSessionManager {
             let shouldResume = AVAudioSession.InterruptionOptions(rawValue: optionsRaw).contains(.shouldResume)
             DebugLog.shared.log("audio interruption ended (resume: \(shouldResume))")
             guard isCaptureActive else { return }
-            configureSession()
+            configureSession(forCapture: true)
             activateSession()
             keepAlivePlayer?.play()
         @unknown default:
@@ -194,7 +211,7 @@ final class AudioSessionManager {
         guard isCaptureActive else { return }
         // A headset or Bluetooth device coming or going can drop our category,
         // and silently sends us back to the earpiece.
-        configureSession()
+        configureSession(forCapture: true)
         activateSession()
         if keepAlivePlayer?.isPlaying == false { keepAlivePlayer?.play() }
         DebugLog.shared.log("route -> \(session.currentRoute.outputs.first?.portType.rawValue ?? "none")")
@@ -204,7 +221,7 @@ final class AudioSessionManager {
         DebugLog.shared.log("media services reset")
         keepAlivePlayer = nil
         guard isCaptureActive else { return }
-        configureSession()
+        configureSession(forCapture: true)
         activateSession()
         startKeepAlive()
     }
