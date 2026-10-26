@@ -1,5 +1,8 @@
 # Commz iOS wrapper
 
+> Picking this up fresh? Read [HANDOFF.md](HANDOFF.md) first — it covers what is
+> verified, what is not, and the open question the project turns on.
+
 A native iOS shell around [app.commz.net](https://app.commz.net), built to solve one
 specific problem: **the microphone must stay live when you leave the app.**
 
