@@ -86,6 +86,32 @@ final class AudioSessionManager {
         } catch {
             DebugLog.shared.log("setActive failed: \(error.localizedDescription)")
         }
+        applyPreferredRoute()
+    }
+
+    /// Force the speaker rather than the earpiece.
+    ///
+    /// `.defaultToSpeaker` is only a *default*, and `.voiceChat` mode overrides it
+    /// back to the receiver — that mode is built for held-to-the-ear calls. For a
+    /// voice lobby the speaker is what people expect, so the route is overridden
+    /// outright once the session is live.
+    ///
+    /// Headphones, Bluetooth and CarPlay are left alone: forcing the speaker while
+    /// someone is on AirPods would be worse than the bug being fixed.
+    private func applyPreferredRoute() {
+        guard AppConfig.defaultToSpeaker else { return }
+
+        let externalPorts: Set<AVAudioSession.Port> = [
+            .headphones, .bluetoothA2DP, .bluetoothHFP, .bluetoothLE,
+            .carAudio, .usbAudio, .airPlay, .headsetMic
+        ]
+        let usingExternal = session.currentRoute.outputs.contains { externalPorts.contains($0.portType) }
+
+        do {
+            try session.overrideOutputAudioPort(usingExternal ? .none : .speaker)
+        } catch {
+            DebugLog.shared.log("route override failed: \(error.localizedDescription)")
+        }
     }
 
     private func deactivateSession() {
@@ -166,10 +192,12 @@ final class AudioSessionManager {
 
     @objc private func handleRouteChange(_ note: Notification) {
         guard isCaptureActive else { return }
-        // A headset or Bluetooth device coming or going can drop our category.
+        // A headset or Bluetooth device coming or going can drop our category,
+        // and silently sends us back to the earpiece.
         configureSession()
         activateSession()
         if keepAlivePlayer?.isPlaying == false { keepAlivePlayer?.play() }
+        DebugLog.shared.log("route -> \(session.currentRoute.outputs.first?.portType.rawValue ?? "none")")
     }
 
     @objc private func handleMediaServicesReset(_ note: Notification) {
@@ -183,10 +211,23 @@ final class AudioSessionManager {
 
     // MARK: - Diagnostics
 
+    /// System-level microphone permission, distinct from whether the page is
+    /// currently capturing. A page that "can't find a microphone" is almost always
+    /// this being anything other than `granted`.
+    var permissionDescription: String {
+        switch AVCaptureDevice.authorizationStatus(for: .audio) {
+        case .authorized: return "granted"
+        case .denied: return "DENIED"
+        case .restricted: return "RESTRICTED"
+        case .notDetermined: return "not asked"
+        @unknown default: return "unknown"
+        }
+    }
+
     var statusDescription: String {
         let route = session.currentRoute.outputs.first?.portType.rawValue ?? "none"
         return """
-        mic: \(isCaptureActive ? "LIVE" : "idle")
+        mic: \(isCaptureActive ? "LIVE" : "idle")  perm: \(permissionDescription)
         keepalive: \(keepAlivePlayer?.isPlaying == true ? "on" : "off")
         category: \(session.category.rawValue.replacingOccurrences(of: "AVAudioSessionCategory", with: ""))
         out: \(route.replacingOccurrences(of: "AVAudioSessionPort", with: ""))

@@ -11,6 +11,7 @@ final class DebugHUD: UIView {
 
     private let statusLabel = UILabel()
     private let logLabel = UILabel()
+    private let reloadButton = UIButton(type: .system)
     private var timer: Timer?
 
     override init(frame: CGRect) {
@@ -42,12 +43,11 @@ final class DebugHUD: UIView {
         logLabel.textColor = UIColor.white.withAlphaComponent(0.75)
         logLabel.numberOfLines = 0
 
-        let reload = UIButton(type: .system)
-        reload.setTitle("Reload", for: .normal)
-        reload.titleLabel?.font = .monospacedSystemFont(ofSize: 10, weight: .semibold)
-        reload.addTarget(self, action: #selector(reloadTapped), for: .touchUpInside)
+        reloadButton.setTitle("Reload", for: .normal)
+        reloadButton.titleLabel?.font = .monospacedSystemFont(ofSize: 10, weight: .semibold)
+        reloadButton.addTarget(self, action: #selector(reloadTapped), for: .touchUpInside)
 
-        let stack = UIStackView(arrangedSubviews: [statusLabel, logLabel, reload])
+        let stack = UIStackView(arrangedSubviews: [statusLabel, logLabel, reloadButton])
         stack.axis = .vertical
         stack.alignment = .leading
         stack.spacing = 4
@@ -69,6 +69,14 @@ final class DebugHUD: UIView {
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             self?.refresh()
         }
+    }
+
+    /// The overlay floats over the page, so everything except the button has to
+    /// be transparent to touches — otherwise it quietly swallows taps on whatever
+    /// the page is drawing underneath it.
+    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+        let inButton = reloadButton.point(inside: convert(point, to: reloadButton), with: event)
+        return inButton && !reloadButton.isHidden
     }
 
     @objc func refresh() {

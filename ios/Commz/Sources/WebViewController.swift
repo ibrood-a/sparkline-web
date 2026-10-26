@@ -25,7 +25,61 @@ final class WebViewController: UIViewController {
 
         if AppConfig.debugHUD { showHUD() }
 
-        load(AppConfig.startURL)
+        // Permission first, page second — see `primeMicrophoneAccess`.
+        primeMicrophoneAccess { [weak self] in
+            self?.load(AppConfig.startURL)
+        }
+    }
+
+    // MARK: - Microphone permission
+
+    /// Settle the system microphone permission *before* the first page load.
+    ///
+    /// A settings screen listing input devices calls `enumerateDevices()`, and
+    /// WebKit returns nothing usable from it until the host app holds microphone
+    /// permission. Waiting for the page to call `getUserMedia` is too late: by then
+    /// the device list has already been built and shown as empty, which reads to
+    /// the user as "it can't find my mic".
+    private func primeMicrophoneAccess(then continuation: @escaping () -> Void) {
+        switch AVCaptureDevice.authorizationStatus(for: .audio) {
+        case .authorized:
+            DebugLog.shared.log("mic permission: already granted")
+            continuation()
+
+        case .notDetermined:
+            DebugLog.shared.log("mic permission: asking")
+            AVCaptureDevice.requestAccess(for: .audio) { granted in
+                DispatchQueue.main.async {
+                    DebugLog.shared.log("mic permission: \(granted ? "granted" : "denied")")
+                    continuation()
+                }
+            }
+
+        case .denied, .restricted:
+            DebugLog.shared.log("mic permission: denied at the system level")
+            continuation()
+            presentMicrophoneDeniedAlert()
+
+        @unknown default:
+            continuation()
+        }
+    }
+
+    /// Nothing in the web app can recover from a system-level denial, so say so
+    /// plainly rather than letting the page report a missing microphone.
+    private func presentMicrophoneDeniedAlert() {
+        let alert = UIAlertController(
+            title: "Microphone is off",
+            message: "Commz can't use your microphone because access is turned off in iOS Settings. Voice lobbies won't pick you up until it's enabled.",
+            preferredStyle: .alert)
+
+        alert.addAction(UIAlertAction(title: "Not now", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Open Settings", style: .default) { _ in
+            guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+            UIApplication.shared.open(url)
+        })
+
+        present(alert, animated: true)
     }
 
     override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
@@ -62,7 +116,10 @@ final class WebViewController: UIViewController {
         webView.translatesAutoresizingMaskIntoConstraints = false
         webView.navigationDelegate = self
         webView.uiDelegate = self
-        webView.allowsBackForwardNavigationGestures = true
+        // Deliberately off: the edge-swipe gesture steals horizontal drags from
+        // the page's own drawers and sliders, which is worse than losing "back"
+        // in an app that has its own navigation.
+        webView.allowsBackForwardNavigationGestures = false
         webView.isOpaque = false
         webView.backgroundColor = AppConfig.backgroundColor
         webView.scrollView.backgroundColor = AppConfig.backgroundColor
@@ -92,6 +149,8 @@ final class WebViewController: UIViewController {
         progressBar.progressTintColor = .systemIndigo
         progressBar.trackTintColor = .clear
         progressBar.alpha = 0
+        // It sits over the top edge of the page; it must never eat a tap.
+        progressBar.isUserInteractionEnabled = false
         view.addSubview(progressBar)
 
         errorView.translatesAutoresizingMaskIntoConstraints = false
@@ -113,6 +172,7 @@ final class WebViewController: UIViewController {
 
         let hudTap = UITapGestureRecognizer(target: self, action: #selector(toggleHUD))
         hudTap.numberOfTouchesRequired = 3
+        hudTap.cancelsTouchesInView = false
         view.addGestureRecognizer(hudTap)
     }
 
@@ -412,10 +472,24 @@ extension WebViewController: WKScriptMessageHandler {
               let body = message.body as? [String: Any],
               let event = body["event"] as? String else { return }
 
-        let kind = body["kind"] as? String ?? "?"
-        var line = "track \(kind) \(event)"
-        if let readyState = body["readyState"] as? String { line += " (\(readyState))" }
-        if let muted = body["muted"] as? Bool, event == "acquired" { line += " (muted: \(muted))" }
+        var line: String
+
+        if event == "devices" {
+            // Zero inputs here, with permission granted, means WebKit is not
+            // handing the page any microphone at all.
+            let count = body["count"] as? Int ?? -1
+            let labelled = body["labelled"] as? Int ?? -1
+            let reason = body["reason"] as? String ?? "?"
+            line = "devices(\(reason)): \(count) audioinput, \(labelled) labelled"
+            if let error = body["error"] as? String { line = "devices(\(reason)) error: \(error)" }
+        } else if let error = body["error"] as? String {
+            line = "\(event): \(error)"
+        } else {
+            let kind = body["kind"] as? String ?? "?"
+            line = "track \(kind) \(event)"
+            if let readyState = body["readyState"] as? String { line += " (\(readyState))" }
+            if let muted = body["muted"] as? Bool, event == "acquired" { line += " (muted: \(muted))" }
+        }
 
         DebugLog.shared.log(line)
         hud?.refresh()

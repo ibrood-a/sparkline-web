@@ -85,13 +85,56 @@ enum PageScripts {
         });
       }
 
-      var original = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
-      navigator.mediaDevices.getUserMedia = function (constraints) {
-        return original(constraints).then(function (stream) {
-          try { stream.getAudioTracks().forEach(watch); } catch (e) {}
-          return stream;
+      // Report what the page can actually see. A settings screen that says it
+      // found no microphone is reading this list, and WebKit returns nothing
+      // usable from it until the host app holds the permission — so when the
+      // count is zero the fault is upstream of the web app.
+      function reportDevices(reason) {
+        if (!navigator.mediaDevices.enumerateDevices) { return; }
+        navigator.mediaDevices.enumerateDevices().then(function (devices) {
+          var inputs = devices.filter(function (d) { return d.kind === 'audioinput'; });
+          post({
+            event: 'devices',
+            reason: reason,
+            count: inputs.length,
+            labelled: inputs.filter(function (d) { return !!d.label; }).length
+          });
+        }).catch(function (e) {
+          post({ event: 'devices', reason: reason, error: String(e && e.name || e) });
         });
-      };
+      }
+
+      // Instrumentation must never be the reason a call fails: if wrapping
+      // getUserMedia throws, put the original back and stay out of the way.
+      var original = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+      try {
+        navigator.mediaDevices.getUserMedia = function (constraints) {
+          var result;
+          try {
+            result = original(constraints);
+          } catch (e) {
+            post({ event: 'gum-threw', error: String(e && e.name || e) });
+            throw e;
+          }
+          return result.then(function (stream) {
+            try { stream.getAudioTracks().forEach(watch); } catch (e) {}
+            return stream;
+          }, function (error) {
+            post({ event: 'gum-rejected', error: String(error && error.name || error) });
+            throw error;
+          });
+        };
+      } catch (e) {
+        try { navigator.mediaDevices.getUserMedia = original; } catch (e2) {}
+        post({ event: 'monitor-failed', error: String(e && e.name || e) });
+      }
+
+      reportDevices('startup');
+      try {
+        navigator.mediaDevices.addEventListener('devicechange', function () {
+          reportDevices('devicechange');
+        });
+      } catch (e) {}
     })();
     """
 
