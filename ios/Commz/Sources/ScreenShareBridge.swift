@@ -61,7 +61,18 @@ final class ScreenShareBridge {
         report("connecting", nil)
 
         do {
-            try await room.connect(url: url, token: token, connectOptions: ConnectOptions(autoSubscribe: false))
+            // VP8 is encoded in software. The iPhone's hardware H.264 encoder is not
+            // available to an app in the background, which is exactly when a screen
+            // share is running, and a stalled encoder freezes the share on its last
+            // frame. 15 fps keeps the software encoder's CPU cost reasonable.
+            let publish = VideoPublishOptions(
+                screenShareEncoding: VideoEncoding(maxBitrate: 1_500_000, maxFps: 15),
+                simulcast: false,
+                preferredCodec: .vp8)
+            try await room.connect(url: url,
+                                   token: token,
+                                   connectOptions: ConnectOptions(autoSubscribe: false),
+                                   roomOptions: RoomOptions(defaultVideoPublishOptions: publish))
             watchBroadcast()
             // Shows the system "Screen Broadcast" sheet. The track is published
             // once the user taps Start Broadcast; tapping outside cancels.
@@ -93,6 +104,7 @@ final class ScreenShareBridge {
         guard room != nil else { return }
         if broadcasting {
             sawBroadcast = true
+            AudioSessionManager.shared.setScreenShareActive(true)
             pickerTimeout?.cancel()
             pickerTimeout = nil
             DebugLog.shared.log("screen share: broadcasting")
@@ -107,6 +119,7 @@ final class ScreenShareBridge {
         pickerTimeout?.cancel()
         pickerTimeout = nil
         broadcastWatch = nil
+        AudioSessionManager.shared.setScreenShareActive(false)
 
         if let room = room {
             self.room = nil

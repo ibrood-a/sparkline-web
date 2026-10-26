@@ -36,6 +36,11 @@ final class AudioSessionManager {
     /// Set by the web view's KVO on `microphoneCaptureState`.
     private(set) var isCaptureActive = false
 
+    /// Set by `ScreenShareBridge` while a broadcast is live. The app encodes and
+    /// sends the extension's frames, so it must stay awake in the background for
+    /// the whole share, even if the page has released the microphone.
+    private(set) var isScreenShareActive = false
+
     /// True while our speaker override is in force.
     private var speakerOverridden = false
     /// When the route was last overridden; see `minimumOverrideInterval`.
@@ -98,7 +103,7 @@ final class AudioSessionManager {
         } else {
             pendingRouteCheck?.cancel()
             pendingRouteCheck = nil
-            stopKeepAlive()
+            if !isScreenShareActive { stopKeepAlive() }
             // WebKit's next category change clears the override; just forget it.
             speakerOverridden = false
             if AppConfig.manageAudioSession {
@@ -271,12 +276,24 @@ final class AudioSessionManager {
         return wav
     }
 
+    /// Called (on the main thread) when a screen-share broadcast starts or ends.
+    func setScreenShareActive(_ active: Bool) {
+        guard active != isScreenShareActive else { return }
+        isScreenShareActive = active
+        if active {
+            if UIApplication.shared.applicationState != .active { startKeepAlive() }
+        } else if !isCaptureActive {
+            stopKeepAlive()
+        }
+        DebugLog.shared.log("screen share \(active ? "live" : "ended") (app keep-alive \(active ? "armed" : "released"))")
+    }
+
     // MARK: - App events
 
     /// The user is leaving the app (home screen, lock, app switcher): start the
     /// keep-alive now, while the process is still in front and allowed to.
     @objc private func appWillResignActive() {
-        guard isCaptureActive else { return }
+        guard isCaptureActive || isScreenShareActive else { return }
         startKeepAlive()
     }
 
