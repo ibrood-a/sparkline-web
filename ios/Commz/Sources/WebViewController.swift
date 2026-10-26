@@ -13,6 +13,9 @@ final class WebViewController: UIViewController {
 
     // MARK: - Lifecycle
 
+    /// Native screen sharing for the page (see ScreenShareBridge).
+    private let screenShare = ScreenShareBridge()
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -110,9 +113,11 @@ final class WebViewController: UIViewController {
         let controller = WKUserContentController()
         PageScripts.userScripts().forEach(controller.addUserScript)
         controller.add(ScriptMessageProxy(self), name: PageScripts.trackMonitorHandlerName)
+        controller.add(ScriptMessageProxy(self), name: ScreenShareBridge.handlerName)
         configuration.userContentController = controller
 
         webView = WKWebView(frame: .zero, configuration: configuration)
+        screenShare.webView = webView
         webView.translatesAutoresizingMaskIntoConstraints = false
         webView.navigationDelegate = self
         webView.uiDelegate = self
@@ -494,6 +499,16 @@ extension WebViewController: WKScriptMessageHandler {
     /// mitigations off one at a time.
     func userContentController(_ userContentController: WKUserContentController,
                                didReceive message: WKScriptMessage) {
+
+        // Screen sharing joins a LiveKit room, so only Commz's own top-level page
+        // may ask for it — never an embedded frame or another site.
+        if message.name == ScreenShareBridge.handlerName {
+            guard message.frameInfo.isMainFrame,
+                  message.frameInfo.request.url?.isPrimaryDomain == true,
+                  let body = message.body as? [String: Any] else { return }
+            screenShare.handle(body)
+            return
+        }
 
         guard message.name == PageScripts.trackMonitorHandlerName,
               let body = message.body as? [String: Any],

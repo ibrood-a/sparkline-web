@@ -6,11 +6,16 @@ options:
   createIntermediateGroups: true
   minimumXcodeGenVersion: "2.35.0"
 
+packages:
+  LiveKit:
+    url: https://github.com/livekit/client-sdk-swift
+    from: 2.18.0
+
 settings:
   base:
     SWIFT_VERSION: "5.0"
-    MARKETING_VERSION: "1.0.1"
-    CURRENT_PROJECT_VERSION: "2"
+    MARKETING_VERSION: "1.1.0"
+    CURRENT_PROJECT_VERSION: "3"
     IPHONEOS_DEPLOYMENT_TARGET: "15.0"
     ENABLE_BITCODE: NO
 
@@ -38,6 +43,43 @@ targets:
         # Override these on a developer machine to run on a device from Xcode.
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: ""
+    # The app and its broadcast extension share frames through this App Group;
+    # LiveKit's default is group.<app bundle id>.
+    entitlements:
+      path: Commz/Commz.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.net.commz.app
+    dependencies:
+      - package: LiveKit
+      - target: CommzBroadcast
+
+  # ReplayKit broadcast extension for screen sharing (see ScreenShareBridge).
+  # LiveKit expects it at <app bundle id>.broadcast.
+  CommzBroadcast:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: CommzBroadcast/SampleHandler.swift
+      - path: CommzBroadcast/Info.plist
+        buildPhase: none
+    settings:
+      base:
+        PRODUCT_NAME: CommzBroadcast
+        PRODUCT_BUNDLE_IDENTIFIER: net.commz.app.broadcast
+        INFOPLIST_FILE: CommzBroadcast/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SWIFT_EMIT_LOC_STRINGS: NO
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: ""
+    entitlements:
+      path: CommzBroadcast/CommzBroadcast.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.net.commz.app
+    dependencies:
+      - package: LiveKit
 
 schemes:
   Commz:

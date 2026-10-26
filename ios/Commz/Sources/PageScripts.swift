@@ -140,6 +140,22 @@ enum PageScripts {
 
     static let trackMonitorHandlerName = "commzTrack"
 
+    /// Tells the page what the app can do that a browser cannot. The web app
+    /// shows its screen share button when `screenShare` is true and routes the
+    /// share through `ScreenShareBridge`.
+    static let nativeCapabilities = """
+    (function () {
+      if (window.commzNative) { return; }
+      try {
+        Object.defineProperty(window, 'commzNative', {
+          value: Object.freeze({ screenShare: true }),
+          configurable: false,
+          writable: false
+        });
+      } catch (e) { /* already defined by a newer script */ }
+    })();
+    """
+
     /// Removes the pause before every tap registers.
     ///
     /// When a page is zoomable, WebKit has to wait after a tap to find out
@@ -190,6 +206,10 @@ enum PageScripts {
                                         injectionTime: .atDocumentStart,
                                         forMainFrameOnly: false))
         }
+
+        scripts.append(WKUserScript(source: nativeCapabilities,
+                                    injectionTime: .atDocumentStart,
+                                    forMainFrameOnly: true))
 
         scripts.append(WKUserScript(source: trackMonitor,
                                     injectionTime: .atDocumentStart,
