@@ -1,0 +1,195 @@
+import AVFoundation
+import Foundation
+import UIKit
+
+/// Keeps microphone capture alive while the app is in the background.
+///
+/// In a PWA the mic mutes on backgrounding because Safari itself gets suspended
+/// by the OS. A native shell can opt out of that, but only if three things hold
+/// at the moment the app leaves the foreground:
+///
+///  1. The app declares the `audio` background mode (see Info.plist).
+///  2. Its `AVAudioSession` is active and in a recording-capable category.
+///  3. The app is *actually* moving audio. An idle session is not enough — iOS
+///     suspends the process anyway. So we play inaudible audio for as long as
+///     the page holds the microphone.
+///
+/// Background audio cannot be started once the app is already suspended, so the
+/// keep-alive starts the moment capture begins, not when we background.
+final class AudioSessionManager {
+
+    static let shared = AudioSessionManager()
+
+    private let session = AVAudioSession.sharedInstance()
+    private var keepAlivePlayer: AVAudioPlayer?
+
+    /// Set by the web view's KVO on `microphoneCaptureState`.
+    private(set) var isCaptureActive = false
+
+    private init() {}
+
+    // MARK: - Lifecycle
+
+    func start() {
+        configureSession()
+
+        let center = NotificationCenter.default
+        center.addObserver(self, selector: #selector(handleInterruption(_:)),
+                           name: AVAudioSession.interruptionNotification, object: session)
+        center.addObserver(self, selector: #selector(handleRouteChange(_:)),
+                           name: AVAudioSession.routeChangeNotification, object: session)
+        center.addObserver(self, selector: #selector(handleMediaServicesReset(_:)),
+                           name: AVAudioSession.mediaServicesWereResetNotification, object: session)
+    }
+
+    /// Called whenever the page starts or stops using the microphone.
+    func setCaptureActive(_ active: Bool) {
+        guard active != isCaptureActive else { return }
+        isCaptureActive = active
+
+        if active {
+            configureSession()
+            activateSession()
+            startKeepAlive()
+        } else {
+            stopKeepAlive()
+            deactivateSession()
+        }
+
+        UIApplication.shared.isIdleTimerDisabled = active
+        DebugLog.shared.log("capture \(active ? "started" : "stopped")")
+    }
+
+    // MARK: - Session configuration
+
+    /// WebKit configures the audio session itself when `getUserMedia` starts, so
+    /// this is re-applied on every relevant transition rather than once at launch.
+    private func configureSession() {
+        var options: AVAudioSession.CategoryOptions = [.allowBluetooth, .allowBluetoothA2DP]
+        if AppConfig.defaultToSpeaker {
+            options.insert(.defaultToSpeaker)
+        }
+
+        do {
+            try session.setCategory(.playAndRecord, mode: .voiceChat, options: options)
+        } catch {
+            DebugLog.shared.log("setCategory failed: \(error.localizedDescription)")
+            // `.voiceChat` rejects some option combinations on older devices;
+            // fall back to the plain category so we still get record + background.
+            try? session.setCategory(.playAndRecord, options: options)
+        }
+    }
+
+    private func activateSession() {
+        do {
+            try session.setActive(true, options: [])
+        } catch {
+            DebugLog.shared.log("setActive failed: \(error.localizedDescription)")
+        }
+    }
+
+    private func deactivateSession() {
+        // Let other apps resume, but never fight WebKit if it still holds the session.
+        try? session.setActive(false, options: [.notifyOthersOnDeactivation])
+    }
+
+    // MARK: - Inaudible keep-alive
+
+    private func startKeepAlive() {
+        guard AppConfig.backgroundKeepAlive, keepAlivePlayer == nil else { return }
+
+        do {
+            let player = try AVAudioPlayer(data: AudioSessionManager.silentLoopWAV())
+            player.numberOfLoops = -1
+            player.volume = 1.0 // the samples themselves are silence
+            player.prepareToPlay()
+            player.play()
+            keepAlivePlayer = player
+            DebugLog.shared.log("keep-alive started")
+        } catch {
+            DebugLog.shared.log("keep-alive failed: \(error.localizedDescription)")
+        }
+    }
+
+    private func stopKeepAlive() {
+        keepAlivePlayer?.stop()
+        keepAlivePlayer = nil
+        DebugLog.shared.log("keep-alive stopped")
+    }
+
+    /// One second of silent 44.1 kHz mono PCM, wrapped in a WAV header.
+    /// Generated rather than shipped so there is no binary blob in the repo.
+    private static func silentLoopWAV() -> Data {
+        let sampleRate = 44_100
+        let channels = 1
+        let bitsPerSample = 16
+        let frameCount = sampleRate // 1 second
+        let dataBytes = frameCount * channels * bitsPerSample / 8
+        let byteRate = sampleRate * channels * bitsPerSample / 8
+        let blockAlign = channels * bitsPerSample / 8
+
+        var wav = Data()
+        func ascii(_ s: String) { wav.append(contentsOf: Array(s.utf8)) }
+        func u32(_ v: Int) { withUnsafeBytes(of: UInt32(v).littleEndian) { wav.append(contentsOf: $0) } }
+        func u16(_ v: Int) { withUnsafeBytes(of: UInt16(v).littleEndian) { wav.append(contentsOf: $0) } }
+
+        ascii("RIFF"); u32(36 + dataBytes); ascii("WAVE")
+        ascii("fmt "); u32(16); u16(1); u16(channels)
+        u32(sampleRate); u32(byteRate); u16(blockAlign); u16(bitsPerSample)
+        ascii("data"); u32(dataBytes)
+        wav.append(Data(count: dataBytes)) // zeroed samples == silence
+
+        return wav
+    }
+
+    // MARK: - System events
+
+    @objc private func handleInterruption(_ note: Notification) {
+        guard let raw = note.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt,
+              let type = AVAudioSession.InterruptionType(rawValue: raw) else { return }
+
+        switch type {
+        case .began:
+            DebugLog.shared.log("audio interrupted")
+        case .ended:
+            let optionsRaw = note.userInfo?[AVAudioSessionInterruptionOptionKey] as? UInt ?? 0
+            let shouldResume = AVAudioSession.InterruptionOptions(rawValue: optionsRaw).contains(.shouldResume)
+            DebugLog.shared.log("audio interruption ended (resume: \(shouldResume))")
+            guard isCaptureActive else { return }
+            configureSession()
+            activateSession()
+            keepAlivePlayer?.play()
+        @unknown default:
+            break
+        }
+    }
+
+    @objc private func handleRouteChange(_ note: Notification) {
+        guard isCaptureActive else { return }
+        // A headset or Bluetooth device coming or going can drop our category.
+        configureSession()
+        activateSession()
+        if keepAlivePlayer?.isPlaying == false { keepAlivePlayer?.play() }
+    }
+
+    @objc private func handleMediaServicesReset(_ note: Notification) {
+        DebugLog.shared.log("media services reset")
+        keepAlivePlayer = nil
+        guard isCaptureActive else { return }
+        configureSession()
+        activateSession()
+        startKeepAlive()
+    }
+
+    // MARK: - Diagnostics
+
+    var statusDescription: String {
+        let route = session.currentRoute.outputs.first?.portType.rawValue ?? "none"
+        return """
+        mic: \(isCaptureActive ? "LIVE" : "idle")
+        keepalive: \(keepAlivePlayer?.isPlaying == true ? "on" : "off")
+        category: \(session.category.rawValue.replacingOccurrences(of: "AVAudioSessionCategory", with: ""))
+        out: \(route.replacingOccurrences(of: "AVAudioSessionPort", with: ""))
+        """
+    }
+}

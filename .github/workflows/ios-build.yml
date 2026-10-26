@@ -1,0 +1,110 @@
+name: iOS app (Commz wrapper)
+
+on:
+  push:
+    branches:
+      - main
+      - 'claude/**'
+    paths:
+      - 'ios/**'
+      - '.github/workflows/ios-build.yml'
+  pull_request:
+    paths:
+      - 'ios/**'
+      - '.github/workflows/ios-build.yml'
+  workflow_dispatch:
+    inputs:
+      publish_release:
+        description: 'Attach the IPA to the ios-latest prerelease (stable download link)'
+        type: boolean
+        default: false
+
+concurrency:
+  group: ios-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build unsigned IPA
+    runs-on: macos-latest
+    timeout-minutes: 30
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: |
+          sw_vers
+          xcodebuild -version
+
+      - name: Install XcodeGen
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: '1'
+          HOMEBREW_NO_INSTALL_CLEANUP: '1'
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        working-directory: ios
+        run: |
+          xcodegen generate --spec project.yml
+          xcodebuild -list -project Commz.xcodeproj
+
+      # Unsigned: GitHub-hosted runners have no signing identity, and sideloading
+      # tools (AltStore, Sideloadly, ESign) re-sign the payload anyway.
+      - name: Build
+        working-directory: ios
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project Commz.xcodeproj \
+            -scheme Commz \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            ONLY_ACTIVE_ARCH=NO \
+            build
+
+      - name: Package IPA
+        working-directory: ios
+        run: |
+          APP="build/Build/Products/Release-iphoneos/Commz.app"
+          test -d "$APP" || { echo "::error::$APP not found"; exit 1; }
+
+          rm -rf payload-staging
+          mkdir -p payload-staging/Payload
+          cp -R "$APP" payload-staging/Payload/
+
+          mkdir -p "$GITHUB_WORKSPACE/artifacts"
+          (cd payload-staging && zip -qry "$GITHUB_WORKSPACE/artifacts/Commz-unsigned.ipa" Payload)
+
+          ls -lh "$GITHUB_WORKSPACE/artifacts"
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Commz-unsigned-ipa
+          path: artifacts/Commz-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Publish to ios-latest prerelease
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_release }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete ios-latest --cleanup-tag --yes 2>/dev/null || true
+          gh release create ios-latest \
+            artifacts/Commz-unsigned.ipa \
+            --title "Commz iOS (unsigned)" \
+            --prerelease \
+            --target "$GITHUB_SHA" \
+            --notes "Unsigned build of the Commz iOS wrapper from \`$GITHUB_SHA\`.
+          Re-sign with AltStore, Sideloadly or a signing service before installing."
