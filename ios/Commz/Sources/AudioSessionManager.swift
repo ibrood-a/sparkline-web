@@ -48,15 +48,29 @@ final class AudioSessionManager {
         isCaptureActive = active
 
         if active {
-            configureSession(forCapture: true)
-            activateSession()
+            // Deliberately hands-off by default. By the time this runs WebKit has
+            // already configured the session and started the input unit, and
+            // calling setCategory on a live capture tears that unit down — the
+            // track stays open and stops carrying any audio, which the page sees
+            // as "no microphone input detected" while sitting in a call.
+            //
+            // So the shell adds only the two things WebKit cannot: an inaudible
+            // stream so iOS keeps the process alive in the background, and an
+            // output-only route preference.
+            if AppConfig.manageAudioSession {
+                configureSession(forCapture: true)
+                activateSession()
+            }
+            applyPreferredRoute()
             startKeepAlive()
         } else {
             stopKeepAlive()
-            deactivateSession()
-            // Back to plain playback, so clips and notification sounds are not
-            // stuck on the call routing until the next lobby.
-            configureSession(forCapture: false)
+            if AppConfig.manageAudioSession {
+                deactivateSession()
+                // Back to plain playback, so clips and notification sounds are
+                // not stuck on the call routing until the next lobby.
+                configureSession(forCapture: false)
+            }
         }
 
         UIApplication.shared.isIdleTimerDisabled = active
@@ -136,6 +150,17 @@ final class AudioSessionManager {
         try? session.setActive(false, options: [.notifyOthersOnDeactivation])
     }
 
+    /// Apply a live change to the keep-alive toggle without waiting for the next
+    /// call to start.
+    func refreshKeepAlive() {
+        guard isCaptureActive else { return }
+        if AppConfig.backgroundKeepAlive {
+            startKeepAlive()
+        } else {
+            stopKeepAlive()
+        }
+    }
+
     // MARK: - Inaudible keep-alive
 
     private func startKeepAlive() {
@@ -199,7 +224,8 @@ final class AudioSessionManager {
             let shouldResume = AVAudioSession.InterruptionOptions(rawValue: optionsRaw).contains(.shouldResume)
             DebugLog.shared.log("audio interruption ended (resume: \(shouldResume))")
             guard isCaptureActive else { return }
-            configureSession(forCapture: true)
+            // An interruption does stop our player, so the session has to be
+            // reactivated here regardless of who owns the category.
             activateSession()
             keepAlivePlayer?.play()
         @unknown default:
@@ -209,10 +235,13 @@ final class AudioSessionManager {
 
     @objc private func handleRouteChange(_ note: Notification) {
         guard isCaptureActive else { return }
-        // A headset or Bluetooth device coming or going can drop our category,
-        // and silently sends us back to the earpiece.
-        configureSession(forCapture: true)
-        activateSession()
+        // Re-assert the output route only. Re-setting the category here would hit
+        // a live capture unit, which is the thing we are avoiding.
+        if AppConfig.manageAudioSession {
+            configureSession(forCapture: true)
+            activateSession()
+        }
+        applyPreferredRoute()
         if keepAlivePlayer?.isPlaying == false { keepAlivePlayer?.play() }
         DebugLog.shared.log("route -> \(session.currentRoute.outputs.first?.portType.rawValue ?? "none")")
     }

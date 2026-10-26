@@ -219,7 +219,17 @@ final class WebViewController: UIViewController {
         }
     }
 
-    func reload() { retry() }
+    /// Rebuild the injected scripts, then reload.
+    ///
+    /// User scripts are evaluated at document start and installed once, so a
+    /// plain reload would re-run whatever was registered at launch. Toggling one
+    /// of them off has to re-register the set or the toggle does nothing.
+    func reload() {
+        let controller = webView.configuration.userContentController
+        controller.removeAllUserScripts()
+        PageScripts.userScripts().forEach(controller.addUserScript)
+        retry()
+    }
 
     private func updateProgress(_ progress: Double) {
         progressBar.setProgress(Float(progress), animated: true)
@@ -284,7 +294,7 @@ final class WebViewController: UIViewController {
         NSLayoutConstraint.activate([
             overlay.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
             overlay.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8),
-            overlay.widthAnchor.constraint(lessThanOrEqualTo: view.widthAnchor, multiplier: 0.75)
+            overlay.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -8)
         ])
 
         hud = overlay

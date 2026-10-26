@@ -49,6 +49,17 @@ enum AppConfig {
         set { UserDefaults.standard.set(newValue, forKey: Keys.keepAlive) }
     }
 
+    /// Take over the audio session while the page is capturing.
+    ///
+    /// Off by default. WebKit configures and activates the session itself when
+    /// `getUserMedia` starts, and re-setting the category on a live capture tears
+    /// the input unit down — which leaves a track that is open but carries
+    /// silence. The shell adds only what WebKit cannot (see `AudioSessionManager`).
+    static var manageAudioSession: Bool {
+        get { flag(Keys.manageAudioSession, default: false) }
+        set { UserDefaults.standard.set(newValue, forKey: Keys.manageAudioSession) }
+    }
+
     /// Remove WebKit's wait-and-see delay before every tap.
     static var fastTaps: Bool {
         get { flag(Keys.fastTaps, default: true) }
@@ -70,6 +81,7 @@ enum AppConfig {
     enum Keys {
         static let spoofVisibility = "CommzSpoofPageVisibility"
         static let keepAlive = "CommzBackgroundKeepAlive"
+        static let manageAudioSession = "CommzManageAudioSession"
         static let fastTaps = "CommzFastTaps"
         static let speaker = "CommzDefaultToSpeaker"
         static let debugHUD = "CommzDebugHUD"
